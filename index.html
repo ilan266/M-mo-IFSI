@@ -1,0 +1,2694 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mémo IFSI — Réa · Urgences · Bloc</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f3ec;
+    --bg-2:#efeae0;
+    --paper:#fbf9f3;
+    --ink:#181613;
+    --ink-2:#3b3733;
+    --muted:#75706a;
+    --line:#d9d2c4;
+    --line-2:#c2b9a6;
+    --accent:#0b6b5a;      /* teal médical */
+    --accent-2:#0a5547;
+    --warn:#b8590f;        /* ocre */
+    --crit:#a8201a;        /* rouge urgence */
+    --good:#3a6b1f;
+    --info:#1e4a7a;
+    --pill:#ecead9;
+    --radius:14px;
+    --shadow:0 1px 0 rgba(0,0,0,.04), 0 8px 32px -16px rgba(0,0,0,.18);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:"Inter Tight",system-ui,sans-serif;-webkit-font-smoothing:antialiased;font-feature-settings:"ss01","cv11"}
+  body{min-height:100vh;background:
+      radial-gradient(1200px 600px at 90% -10%, #efe3c8 0%, transparent 60%),
+      radial-gradient(800px 400px at -10% 110%, #d8e5e0 0%, transparent 60%),
+      var(--bg);
+  }
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 30%, transparent)}
+  a:hover{color:var(--accent-2)}
+  /* ============== APP LAYOUT ============== */
+  .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+  @media (max-width:980px){.app{grid-template-columns:1fr}}
+  /* Sidebar */
+  .side{
+    position:sticky;top:0;height:100vh;overflow:auto;
+    background:var(--paper);border-right:1px solid var(--line);
+    padding:24px 18px 32px;
+  }
+  @media (max-width:980px){.side{position:relative;height:auto;border-right:0;border-bottom:1px solid var(--line)}}
+  .brand{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px}
+  .brand-mark{
+    width:42px;height:42px;border-radius:11px;flex:0 0 42px;
+    background:linear-gradient(135deg,var(--accent) 0%, #0e8a73 100%);
+    display:grid;place-items:center;color:#fff;font-weight:700;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.25);
+    font-family:"Fraunces",serif;letter-spacing:-.02em;
+  }
+  .brand-mark::before{content:"+";font-size:30px;line-height:1;transform:translateY(-1px)}
+  .brand h1{
+    font-family:"Fraunces",serif;font-weight:600;letter-spacing:-.02em;
+    margin:0;font-size:22px;line-height:1.05;
+  }
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase}
+  .search{position:relative;margin:10px 0 18px}
+  .search input{
+    width:100%;padding:11px 14px 11px 38px;border-radius:10px;border:1px solid var(--line);
+    background:#fff;font:inherit;font-size:14px;color:var(--ink);outline:none;
+    transition:border-color .15s ease, box-shadow .15s ease;
+  }
+  .search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 18%, transparent)}
+  .search svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted)}
+  .search kbd{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-family:"JetBrains Mono",monospace;font-size:11px;color:var(--muted);border:1px solid var(--line);padding:1px 6px;border-radius:5px;background:var(--bg)}
+  .nav-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 6px 8px}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav button{
+    text-align:left;border:0;background:transparent;color:var(--ink-2);
+    padding:9px 11px;border-radius:9px;font:inherit;font-size:14px;cursor:pointer;
+    display:flex;align-items:center;gap:10px;line-height:1.2;
+  }
+  .nav button:hover{background:var(--bg-2);color:var(--ink)}
+  .nav button.active{background:var(--ink);color:#fff}
+  .nav .num{font-family:"JetBrains Mono",monospace;font-size:11px;opacity:.7;min-width:22px}
+  .footer-note{margin-top:24px;padding:12px;border-radius:10px;background:var(--bg-2);font-size:12px;color:var(--muted);line-height:1.45}
+  .footer-note strong{color:var(--ink-2)}
+
+  /* Main */
+  main{padding:36px clamp(20px,5vw,56px) 80px;max-width:1180px}
+  .hero{margin-bottom:28px}
+  .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  h2.title{
+    font-family:"Fraunces",serif;font-weight:500;letter-spacing:-.025em;
+    font-size:clamp(34px,5vw,52px);margin:0;line-height:1;
+  }
+  h2.title em{font-style:italic;color:var(--accent)}
+  .lede{margin:16px 0 0;max-width:62ch;color:var(--ink-2);font-size:16.5px;line-height:1.6}
+
+  /* Section */
+  section{display:none}
+  section.show{display:block;animation:fade .35s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+  /* Cards & blocks */
+  .grid{display:grid;gap:18px}
+  .grid.cols-2{grid-template-columns:repeat(2,1fr)}
+  .grid.cols-3{grid-template-columns:repeat(3,1fr)}
+  @media (max-width:820px){.grid.cols-2,.grid.cols-3{grid-template-columns:1fr}}
+  .card{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 22px 20px;box-shadow:var(--shadow);
+  }
+  .card h3{
+    font-family:"Fraunces",serif;font-weight:500;letter-spacing:-.015em;
+    font-size:22px;margin:0 0 6px;line-height:1.15;
+  }
+  .card h4{font-family:"Fraunces",serif;font-weight:600;font-size:16px;margin:18px 0 6px;letter-spacing:-.01em}
+  .card p{margin:6px 0;color:var(--ink-2);line-height:1.55;font-size:15px}
+  .card ul,.card ol{margin:6px 0 6px 18px;padding:0}
+  .card li{margin:4px 0;color:var(--ink-2);line-height:1.55;font-size:15px}
+  .card li::marker{color:var(--accent)}
+
+  /* Pills / tags */
+  .pill{display:inline-block;padding:3px 9px;border-radius:999px;background:var(--pill);color:var(--ink-2);font-size:12px;font-weight:500;letter-spacing:.02em;border:1px solid var(--line)}
+  .pill.crit{background:#f8e1df;color:var(--crit);border-color:#eec0bc}
+  .pill.warn{background:#f6e5cf;color:var(--warn);border-color:#e8c89a}
+  .pill.good{background:#dbe9cf;color:var(--good);border-color:#bcd4a9}
+  .pill.info{background:#d8e3f1;color:var(--info);border-color:#b2c6df}
+  .pill.accent{background:#cee5df;color:var(--accent-2);border-color:#a4cabf}
+
+  .row-tags{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+
+  /* Callouts */
+  .callout{
+    border-left:3px solid var(--accent);background:#eaf2ef;padding:12px 14px;border-radius:8px;
+    margin:14px 0;font-size:14.5px;line-height:1.55;color:var(--ink-2);
+  }
+  .callout.crit{border-color:var(--crit);background:#fbeae8}
+  .callout.warn{border-color:var(--warn);background:#fbeed7}
+  .callout.info{border-color:var(--info);background:#e1ecf6}
+  .callout.good{border-color:var(--good);background:#e5efd9}
+  .callout strong{color:var(--ink)}
+  .callout .label{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;margin-right:6px}
+
+  /* Tables */
+  .table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;margin:12px 0 8px}
+  table{border-collapse:collapse;width:100%;font-size:14px}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;color:var(--ink-2)}
+  th{background:var(--bg-2);color:var(--ink);font-weight:600;font-size:13px;letter-spacing:.02em;text-transform:uppercase;font-family:"Inter Tight",sans-serif}
+  tr:last-child td{border-bottom:0}
+  td code, .mono{font-family:"JetBrains Mono",monospace;font-size:13px;color:var(--ink)}
+
+  /* Color swatch (cathéters) */
+  .swatch{display:inline-block;width:12px;height:12px;border-radius:3px;border:1px solid rgba(0,0,0,.15);vertical-align:-1px;margin-right:6px}
+
+  /* Section header */
+  .sec-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:36px 0 18px;flex-wrap:wrap}
+  .sec-head h3.h{font-family:"Fraunces",serif;font-weight:500;font-size:28px;letter-spacing:-.02em;margin:0;line-height:1.1}
+  .sec-head .desc{color:var(--muted);font-size:14px;max-width:60ch}
+
+  /* Flashcard quiz */
+  .quiz{margin-top:8px;display:flex;flex-direction:column;gap:10px}
+  .qa{
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+    cursor:pointer;transition:border-color .15s ease, transform .15s ease;
+  }
+  .qa:hover{border-color:var(--line-2)}
+  .qa .q{font-weight:600;color:var(--ink);font-size:14.5px;display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .qa .q::after{content:"+";color:var(--muted);font-size:18px;line-height:1;transition:transform .2s ease}
+  .qa.open .q::after{transform:rotate(45deg)}
+  .qa .a{max-height:0;overflow:hidden;transition:max-height .25s ease;color:var(--ink-2);font-size:14px;line-height:1.6}
+  .qa.open .a{max-height:600px;padding-top:8px}
+
+  /* No results */
+  .empty{padding:40px 16px;text-align:center;color:var(--muted)}
+  mark{background:#ffe9a8;color:var(--ink);border-radius:3px;padding:0 2px}
+
+  /* Drug grid mini */
+  .drug{
+    background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;
+  }
+  .drug h5{font-family:"Fraunces",serif;font-size:16px;margin:0 0 4px;font-weight:600;letter-spacing:-.01em}
+  .drug .meta{color:var(--muted);font-size:12.5px;margin-bottom:6px}
+  .drug ul{margin:4px 0 0 16px;font-size:13.5px}
+  .drug ul li{margin:2px 0}
+
+  /* Mini key/value */
+  .kv{display:grid;grid-template-columns:160px 1fr;gap:8px 16px;font-size:14px;margin:8px 0}
+  .kv dt{color:var(--muted)}
+  .kv dd{margin:0;color:var(--ink-2)}
+
+  /* Top bar mobile */
+  .topbar{display:none}
+  @media (max-width:980px){
+    .topbar{display:flex;align-items:center;gap:10px;padding:14px 18px;background:var(--paper);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10}
+    .topbar select{flex:1;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:#fff;font:inherit}
+    .side{padding:18px}
+  }
+
+  /* Print */
+  @media print{
+    .side,.topbar{display:none}
+    body{background:#fff}
+    section{display:block !important;page-break-after:always}
+    .card{box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="side">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true"></div>
+      <div>
+        <h1>Mémo IFSI</h1>
+        <p>Réa · Urgences · Bloc</p>
+      </div>
+    </div>
+
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input id="searchInput" type="search" placeholder="Rechercher (catécho, VVC, FiO2…)" autocomplete="off">
+    </div>
+
+    <div class="nav-title">Chapitres</div>
+    <nav class="nav" id="nav"></nav>
+
+    <div class="footer-note">
+      <strong>Avertissement.</strong> Outil pédagogique de révision. Les protocoles peuvent varier d'un service à l'autre — toujours se référer aux <em>protocoles internes</em> du service et à la prescription médicale.
+    </div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div>
+    <div class="topbar">
+      <strong style="font-family:Fraunces,serif;font-size:18px">Mémo IFSI</strong>
+      <select id="navMobile"></select>
+    </div>
+
+    <main id="main">
+      <!-- Sections injectées en JS -->
+    </main>
+  </div>
+
+</div>
+
+<!-- ================= DATA ================= -->
+<script>
+/* ============================================================
+   STRUCTURE DES DONNÉES
+   chaque section : { id, num, title, eyebrow, lede, html }
+   ============================================================ */
+const SECTIONS = [
+/* ====================================================== */
+{
+  id:"voies",
+  num:"01",
+  title:"Voies d'abord vasculaires",
+  eyebrow:"Chapitre 01 · accès veineux & artériels",
+  lede:"VVP, VVC, KTA, intra-osseuse, PICC : choisir la bonne voie selon le produit, le débit, la durée et l'urgence. Comprendre <em>pourquoi</em> certains médicaments ne tolèrent qu'une voie centrale.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>VVP — Voie Veineuse Périphérique</h3>
+      <div class="row-tags">
+        <span class="pill accent">Standard</span>
+        <span class="pill">Durée &lt; 96h (recos)</span>
+        <span class="pill">Débit selon calibre</span>
+      </div>
+      <p>Cathéter court (24-48 mm) en veine périphérique du membre supérieur. <strong>Première intention</strong> pour la quasi-totalité des perfusions, transfusions et médicaments non irritants. Réfection / changement de site recommandé <strong>toutes les 72-96h</strong> (surveillance Maddox quotidienne).</p>
+
+      <h4>Calibres & couleurs (norme ISO)</h4>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Couleur</th><th>Gauge</th><th>Débit max</th><th>Indication type</th></tr></thead>
+        <tbody>
+          <tr><td><span class="swatch" style="background:#f59e0b"></span>Orange</td><td>14 G</td><td>≈ 270 mL/min</td><td>Polytrauma, choc hémorragique, transfusion massive</td></tr>
+          <tr><td><span class="swatch" style="background:#9ca3af"></span>Gris</td><td>16 G</td><td>≈ 200 mL/min</td><td>Hémorragie, remplissage massif, chir lourde</td></tr>
+          <tr><td><span class="swatch" style="background:#10b981"></span>Vert</td><td>18 G</td><td>≈ 96 mL/min</td><td>Transfusion CGR / PFC, urgence</td></tr>
+          <tr><td><span class="swatch" style="background:#ec4899"></span>Rose</td><td>20 G</td><td>≈ 60 mL/min</td><td>Standard adulte, antibiothérapie</td></tr>
+          <tr><td><span class="swatch" style="background:#3b82f6"></span>Bleu</td><td>22 G</td><td>≈ 36 mL/min</td><td>Capital veineux fragile, sujet âgé, pédiatrie</td></tr>
+          <tr><td><span class="swatch" style="background:#facc15"></span>Jaune</td><td>24 G</td><td>≈ 20 mL/min</td><td>Nouveau-né, nourrisson, veines très fines</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <div class="callout warn"><span class="label">À retenir</span> Pour <strong>transfuser</strong>, viser au minimum un <strong>20 G (rose)</strong>, idéalement <strong>18 G (vert)</strong> ou plus. En transfusion massive : <strong>2 voies de 16-18 G</strong> minimum.</div>
+
+      <h4>Sites à privilégier / à éviter</h4>
+      <ul>
+        <li><strong>Privilégier :</strong> avant-bras (céphalique, basilique), dos de la main en dernier recours.</li>
+        <li><strong>Éviter :</strong> pli du coude (mobilisation), membre côté curage axillaire / FAV / parésie / lymphœdème / brûlure.</li>
+        <li>Désinfection en <strong>4 temps</strong> (détersion, rinçage, séchage, antisepsie) avec antiseptique alcoolique (chlorhexidine alcoolique 2%).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>VVC — Voie Veineuse Centrale</h3>
+      <div class="row-tags">
+        <span class="pill info">Réa / Onco / Nutrition</span>
+        <span class="pill crit">Acte médical</span>
+      </div>
+      <p>Cathéter long dont l'extrémité se situe dans la <strong>veine cave supérieure</strong> (jonction VCS-OD). Pose <strong>médicale</strong>, sous écho, en conditions stériles chirurgicales. Vérification radio post-pose <strong>obligatoire</strong> avant utilisation (sauf si pose écho-guidée validée et urgence).</p>
+
+      <h4>Sites de pose</h4>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Site</th><th>Avantages</th><th>Inconvénients</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Jugulaire interne D</strong></td><td>Echo facile, moindre risque pneumothorax, trajet court</td><td>Inconfort patient, mobilisation cou</td></tr>
+          <tr><td><strong>Sous-clavière</strong></td><td>Confort patient, fixation stable, faible risque infectieux</td><td>Risque <strong>pneumothorax</strong>, ponction non compressible</td></tr>
+          <tr><td><strong>Fémorale</strong></td><td>Rapide, voie de secours, pas de risque pneumothorax</td><td>Risque infectieux <strong>++</strong>, thrombose, immobilisation</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h4>Indications majeures</h4>
+      <ul>
+        <li><strong>Drogues vasoactives</strong> (catécholamines : noradrénaline, adrénaline, dobutamine).</li>
+        <li>Nutrition parentérale (osmolarité &gt; 800-900 mOsm/L).</li>
+        <li>Solutés hypertoniques (NaCl 10/20%, KCl concentré, bicarbonate molaire).</li>
+        <li>Chimiothérapies vésicantes.</li>
+        <li>Capital veineux épuisé, hémodialyse, PVC.</li>
+      </ul>
+
+      <div class="callout crit"><span class="label">Pourquoi</span> Une <strong>extravasation</strong> de noradrénaline ou de KCl concentré sur VVP provoque <strong>nécrose tissulaire grave</strong>. Le débit sanguin élevé de la VCS dilue immédiatement le produit → sécurité.</div>
+
+      <h4>Surveillance & complications</h4>
+      <ul>
+        <li><strong>Pneumothorax</strong> (sus-claviculaire) : dyspnée brutale, douleur, désaturation.</li>
+        <li><strong>Hémorragie / hématome.</strong></li>
+        <li><strong>Infection liée au cathéter (ILC)</strong> : fièvre inexpliquée, frissons à la manipulation → hémocultures couplées (KT + périph).</li>
+        <li><strong>Thrombose veineuse</strong>, embolie gazeuse (clamper toujours en cas d'ouverture).</li>
+        <li>Pansement transparent stérile, réfection si souillé / décollé, datée.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>PICC line & Midline</h3>
+      <p><strong>PICC</strong> (Peripherally Inserted Central Catheter) : cathéter central inséré dans une veine du bras (basilique), extrémité en VCS. <strong>Idem VVC</strong> en termes d'indications (catécholamines, NP, ATB longue durée). Confort patient supérieur, posable par IDE habilité sous écho. Durée plusieurs semaines à mois.</p>
+      <p><strong>Midline</strong> : cathéter <strong>périphérique long</strong> (20 cm env.), extrémité en veine axillaire — <strong>PAS central</strong>. Permet une antibiothérapie / hydratation de 1-4 semaines mais <strong>jamais de catécholamines / NP / produits hyperosmolaires</strong>.</p>
+      <div class="callout info"><strong>Piège classique :</strong> ne pas confondre Midline et PICC. Midline = <em>périphérique</em>, donc même restrictions qu'une VVP.</div>
+    </div>
+
+    <div class="card">
+      <h3>Cathéter artériel (KTA)</h3>
+      <p>Cathéter en artère <strong>radiale</strong> (le plus souvent), fémorale ou humérale. Permet :</p>
+      <ul>
+        <li>Monitorage <strong>continu de la PA</strong> (courbe artérielle).</li>
+        <li>Prélèvements répétés (gazométrie, ionogrammes) <strong>sans piquer</strong>.</li>
+      </ul>
+      <p>Branché sur tête de pression + poche pressurisée à <strong>300 mmHg</strong> de NaCl 0,9% (parfois hépariné selon protocole). Test d'Allen avant pose radiale.</p>
+      <div class="callout crit"><strong>JAMAIS</strong> d'injection médicamenteuse sur un KTA — risque ischémique majeur. Ligne identifiée par étiquette rouge. Toujours vérifier la courbe avant interprétation d'une PA.</div>
+    </div>
+
+    <div class="card">
+      <h3>Voie intra-osseuse (IO)</h3>
+      <div class="row-tags"><span class="pill crit">Urgence vitale</span><span class="pill">90 sec d'échec VVP</span></div>
+      <p>Pose dans la <strong>moelle osseuse</strong> (tibia proximal, humérus, sternum) à l'aide d'un dispositif type EZ-IO. <strong>Voie de secours en ACR / urgence vitale</strong> quand la VVP est impossible après 2 tentatives ou 90 secondes.</p>
+      <ul>
+        <li>Tout ce qui passe en IV passe en IO (cristalloïdes, drogues d'arrêt, sang).</li>
+        <li>À retirer dès qu'une voie veineuse fiable est en place (max 24h).</li>
+        <li>Très douloureux chez patient conscient → lidocaïne IO avant perfusion.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Chambre implantable (PAC / Port-a-cath)</h3>
+      <p>Boîtier sous-cutané (thorax) relié à un KT central. Accès via <strong>aiguille de Huber</strong> uniquement (jamais d'aiguille standard, biseau coupant = destruction du septum).</p>
+      <ul>
+        <li>Indications : chimiothérapies prolongées, ATB au long cours, NP.</li>
+        <li>Rinçage <strong>pulsé</strong> NaCl 0,9% (10-20 mL) après chaque utilisation ; héparinisation selon protocole entre les cures.</li>
+        <li>Retour veineux à vérifier systématiquement avant injection.</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"oxy",
+  num:"02",
+  title:"Oxygénothérapie & Ventilation",
+  eyebrow:"Chapitre 02 · du débit nasal à la VNI",
+  lede:"Lunettes, masque, MHC, Optiflow, VNI : chaque dispositif a son débit, sa FiO2 et ses indications. Savoir <em>pourquoi</em> on passe de l'un à l'autre est central en réa et urgences.",
+  html:`
+  <div class="card">
+    <h3>Le principe : débit d'O₂ & FiO2</h3>
+    <p>La <strong>FiO2</strong> (fraction inspirée d'O₂) est la concentration d'oxygène délivrée. Air ambiant = 21%. Chaque dispositif a une FiO2 <strong>approximative</strong> qui dépend du débit ET de la ventilation du patient (un patient qui hyperventile dilue plus l'O₂).</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dispositif</th><th>Débit O₂</th><th>FiO2 estimée</th><th>Indication</th></tr></thead>
+      <tbody>
+        <tr><td>Lunettes</td><td>1-6 L/min</td><td>24-44%</td><td>Hypoxémie modérée, confort</td></tr>
+        <tr><td>Masque simple</td><td>5-10 L/min</td><td>40-60%</td><td>Insuffisance respi aiguë</td></tr>
+        <tr><td>Masque à haute concentration (MHC)</td><td>10-15 L/min</td><td>60-95%</td><td>Détresse, MHC <strong>ballon gonflé</strong></td></tr>
+        <tr><td>Venturi</td><td>variable</td><td>24-50% <em>réglable précisément</em></td><td>BPCO (titration fine, éviter hypercapnie)</td></tr>
+        <tr><td>Optiflow (OHD)</td><td>jusqu'à 60 L/min</td><td>21-100%</td><td>IRA hypoxémique, post-extubation</td></tr>
+        <tr><td>VNI</td><td>—</td><td>21-100% + pression</td><td>OAP, BPCO décompensée</td></tr>
+        <tr><td>Ventilation invasive</td><td>—</td><td>21-100% + pression</td><td>Glasgow &lt; 8, échec VNI, ACR</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <div class="callout warn"><span class="label">BPCO</span> Chez le BPCO chronique hypercapnique, <strong>ne pas hyperoxygéner</strong> : objectif <strong>SpO₂ 88-92%</strong>. Trop d'O₂ → narcose au CO₂ (perte du stimulus hypoxique). Privilégier Venturi à débit calibré.</div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Lunettes à O₂</h3>
+      <div class="row-tags"><span class="pill good">Confort</span><span class="pill">1-6 L/min</span></div>
+      <p>Canule binasale. Confortable, permet la parole et l'alimentation. Au-delà de <strong>6 L/min</strong> : inefficace + irritation nasale + assèchement → passer à un masque.</p>
+      <ul>
+        <li>Règle simple : <em>FiO2 ≈ 21 + (4 × débit en L/min)</em> — approximative.</li>
+        <li>1L → ~24%, 2L → ~28%, 3L → ~32%, 4L → ~36%, 5L → ~40%, 6L → ~44%.</li>
+        <li>Humidification recommandée au-dessus de 3-4 L/min en continu.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Masque à haute concentration (MHC)</h3>
+      <div class="row-tags"><span class="pill crit">Urgence</span><span class="pill">10-15 L/min</span></div>
+      <p>Masque à <strong>réservoir</strong> (ballon) avec valves anti-retour. Le ballon doit rester <strong>gonflé</strong> en permanence (sinon le patient inspire de l'air ambiant et la FiO2 chute).</p>
+      <ul>
+        <li>Débit minimum <strong>10 L/min</strong>, idéalement 12-15 L/min.</li>
+        <li>Indication : détresse respiratoire aiguë, intoxication CO, polytraumatisé.</li>
+        <li>Inadapté pour usage prolongé (assèchement, pas d'humidification).</li>
+      </ul>
+      <div class="callout crit">Si le ballon se collabe à l'inspiration : <strong>augmenter le débit</strong> — c'est le signe que le patient inspire plus que vous ne fournissez.</div>
+    </div>
+
+    <div class="card">
+      <h3>Optiflow / OHD — Oxygénothérapie haut débit</h3>
+      <div class="row-tags"><span class="pill accent">Réa / Urgences</span><span class="pill">jusqu'à 60 L/min</span></div>
+      <p>Système qui délivre un mélange <strong>air-O₂ réchauffé (37°C) et humidifié (100%)</strong> via des canules nasales larges, à très haut débit (généralement 30-60 L/min). La FiO2 est <strong>réglable précisément de 21 à 100%</strong>.</p>
+
+      <h4>Mécanismes d'action</h4>
+      <ul>
+        <li><strong>Lavage de l'espace mort</strong> nasopharyngé → meilleure élimination du CO₂.</li>
+        <li>Génère une <strong>PEP</strong> minime (~3-5 cmH₂O bouche fermée) → recrute les alvéoles.</li>
+        <li>Réduit le travail respiratoire (pas besoin de réchauffer/humidifier l'air).</li>
+        <li>Améliore la clairance mucociliaire.</li>
+      </ul>
+
+      <h4>Indications</h4>
+      <ul>
+        <li>Insuffisance respiratoire aiguë hypoxémique (pneumopathie, SDRA léger).</li>
+        <li>Post-extubation, sevrage progressif.</li>
+        <li>Préoxygénation avant intubation.</li>
+        <li>Soins palliatifs (mieux toléré que VNI).</li>
+      </ul>
+
+      <div class="callout info"><strong>Réglages typiques :</strong> débit 50 L/min, FiO2 ajustée à la SpO₂ cible (≥ 92%, ou 88-92% si BPCO). Surveillance : SpO₂, FR, signes de lutte, indice ROX (= SpO₂/FiO2 / FR).</div>
+    </div>
+
+    <div class="card">
+      <h3>VNI — Ventilation Non Invasive</h3>
+      <div class="row-tags"><span class="pill info">CPAP · BiPAP</span></div>
+      <p>Ventilation à pression positive par <strong>masque</strong> (facial, naso-buccal, total face). Évite l'intubation. Deux modes principaux :</p>
+
+      <h4>CPAP — Continuous Positive Airway Pressure</h4>
+      <ul>
+        <li><strong>Une seule pression</strong> constante (≈ PEP) maintenue tout au long du cycle.</li>
+        <li>Recrute les alvéoles, lutte contre l'œdème.</li>
+        <li><strong>Indication phare : OAP cardiogénique.</strong></li>
+      </ul>
+
+      <h4>BiPAP (VS-AI-PEP)</h4>
+      <ul>
+        <li><strong>Deux niveaux</strong> de pression : <strong>AI</strong> (aide inspiratoire) à l'inspiration + <strong>PEP</strong> à l'expiration.</li>
+        <li>Soulage le travail respiratoire (l'AI fait "le travail").</li>
+        <li><strong>Indication phare : BPCO en décompensation hypercapnique</strong> (pH &lt; 7,35 + hypercapnie).</li>
+      </ul>
+
+      <h4>Contre-indications</h4>
+      <ul>
+        <li>Trouble de conscience / coma (sauf BPCO hypercapnique).</li>
+        <li>Vomissements, hémorragie digestive haute.</li>
+        <li>Traumatisme facial / chirurgie ORL récente.</li>
+        <li>Instabilité hémodynamique sévère, ACR.</li>
+        <li>Pneumothorax non drainé.</li>
+        <li>Patient non coopérant.</li>
+      </ul>
+
+      <div class="callout warn">Surveiller : tolérance du masque (escarre arête du nez), fuites, asynchronie, distension gastrique, conjonctivite. Réévaluer à 1h et 4h : si pas d'amélioration → <strong>intubation</strong>.</div>
+    </div>
+
+    <div class="card">
+      <h3>Ventilation invasive</h3>
+      <p>Ventilation mécanique via une <strong>sonde d'intubation</strong> (orotrachéale, nasotrachéale) ou <strong>trachéotomie</strong>. Patient sédaté, parfois curarisé.</p>
+      <ul>
+        <li><strong>Indications</strong> : Glasgow &lt; 8, ACR, échec VNI, choc, SDRA modéré-sévère, protection des voies aériennes.</li>
+        <li><strong>Modes</strong> : VAC (volume contrôlé), VPC (pression contrôlée), VS-AI-PEP (sevrage).</li>
+        <li><strong>Paramètres clés</strong> : Vt 6-8 mL/kg de poids idéal, FR, PEP, FiO2.</li>
+      </ul>
+      <p><strong>Soins infirmiers :</strong> surveillance étanchéité ballonnet (20-30 cmH₂O), aspiration trachéale stérile au besoin, soins de bouche bétadine buccale 4x/j, position semi-assise 30-45° (prévention PAVM), prévention escarres talons / occiput.</p>
+    </div>
+
+  </div>
+
+  <div class="callout good"><span class="label">Escalade thérapeutique type</span> Lunettes → Masque simple → MHC → Optiflow → VNI → Intubation. Ne jamais retarder l'intubation devant des signes d'épuisement (FR &gt; 35, sueurs, tirage majeur, encombrement, troubles de conscience).</div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"catecho",
+  num:"03",
+  title:"Catécholamines & amines vasoactives",
+  eyebrow:"Chapitre 03 · drogues de la réanimation",
+  lede:"Pourquoi <strong>passent-elles obligatoirement sur voie centrale</strong> ? Comment les préparer, les surveiller, les sevrer ? Adrénaline, noradrénaline, dobutamine, éphédrine — chacune a son indication précise.",
+  html:`
+  <div class="card">
+    <h3>Pourquoi voie centrale obligatoire ?</h3>
+    <p>Les catécholamines sont des <strong>vasoconstricteurs puissants</strong>. En cas d'<strong>extravasation</strong> (passage du produit hors de la veine, dans les tissus mous) sur une VVP, la vasoconstriction locale provoque une <strong>ischémie</strong> puis une <strong>nécrose</strong> du tissu cutané et sous-cutané. La voie centrale, du fait de son débit sanguin élevé dans la VCS, <strong>dilue immédiatement</strong> le produit.</p>
+    <div class="callout crit"><span class="label">Règle absolue</span> Noradrénaline, adrénaline en perfusion continue, dopamine forte dose : <strong>VVC ou PICC ou IO</strong> en urgence. <strong>Jamais VVP</strong> sauf situation d'extrême urgence en attendant la VVC.</div>
+    <p>Si extravasation : arrêter immédiatement la perfusion, <strong>laisser le KT en place</strong>, aspirer le produit, antidote = <strong>phentolamine</strong> (α-bloquant) en infiltration sous-cutanée locale. Avis chirurgical.</p>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Noradrénaline (Norépinéphrine)</h3>
+      <span class="pill crit">α₁ +++</span> <span class="pill">Vasoconstricteur</span>
+      <p>L'amine la plus utilisée en réa. <strong>Effet vasoconstricteur</strong> sur les artérioles → augmente la PAM. Peu d'effet sur le cœur (inotrope faible).</p>
+      <dl class="kv">
+        <dt>Indication principale</dt><dd>Choc septique, choc vasoplégique post-op</dd>
+        <dt>Posologie</dt><dd>0,05 à 1-2 µg/kg/min IVSE — titré sur PAM</dd>
+        <dt>Objectif</dt><dd>PAM ≥ 65 mmHg (souvent 65-75)</dd>
+        <dt>Voie</dt><dd>VVC <strong>obligatoire</strong> en continu (IO/VVP transitoire en urgence)</dd>
+        <dt>Surveillance</dt><dd>PA invasive (KTA), FC, diurèse, lactates, perfusion périphérique</dd>
+      </dl>
+      <div class="callout warn">Préparation classique : <strong>8 mg dans 48 mL NaCl 0,9%</strong> (soit 160 µg/mL) — protocoles variables : toujours vérifier celui du service.</div>
+    </div>
+
+    <div class="card">
+      <h3>Adrénaline (Épinéphrine)</h3>
+      <span class="pill crit">α + β₁ + β₂</span>
+      <p><strong>Effet mixte</strong> : vasoconstricteur (α) + inotrope/chronotrope (β₁) + bronchodilatateur (β₂). Drogue de l'<strong>arrêt cardiaque</strong>.</p>
+      <dl class="kv">
+        <dt>ACR</dt><dd><strong>1 mg IVD ou IO</strong> toutes les 3-5 min (dose unique 1 mg = 1 amp de 1 mg/mL)</dd>
+        <dt>Choc anaphylactique</dt><dd><strong>0,5 mg IM face antéro-latérale de la cuisse</strong> chez l'adulte (0,01 mg/kg enfant) — répéter à 5 min si besoin</dd>
+        <dt>Choc cardiogénique / septique réfractaire</dt><dd>0,05-1 µg/kg/min IVSE en VVC</dd>
+        <dt>Asthme aigu grave</dt><dd>0,3 mg SC ou IM</dd>
+      </dl>
+      <div class="callout crit"><strong>Anaphylaxie :</strong> jamais d'attente, jamais d'IV directe en première intention (risque de trouble du rythme). <strong>IM cuisse</strong> = standard.</div>
+    </div>
+
+    <div class="card">
+      <h3>Dobutamine</h3>
+      <span class="pill info">β₁ +++</span>
+      <p><strong>Inotrope pur</strong> : augmente la <strong>contractilité cardiaque</strong> sans vasoconstriction marquée (peut même provoquer une vasodilatation). Pas de soutien tensionnel par vasoconstriction.</p>
+      <dl class="kv">
+        <dt>Indication</dt><dd>Choc cardiogénique, insuffisance cardiaque aiguë</dd>
+        <dt>Posologie</dt><dd>2,5 à 20 µg/kg/min IVSE</dd>
+        <dt>Voie</dt><dd>VVC recommandée (peut passer en VVP de gros calibre à dilution importante en attente VVC)</dd>
+        <dt>Surveillance</dt><dd>FC (tachycardie+++), TdR, PAM, débit cardiaque, lactates, diurèse</dd>
+      </dl>
+      <p>Souvent <strong>associée à la noradré</strong> dans le choc septique avec dysfonction myocardique.</p>
+    </div>
+
+    <div class="card">
+      <h3>Éphédrine</h3>
+      <span class="pill good">Bloc / SSPI</span>
+      <p>Action <strong>indirecte</strong> (libère la noradrénaline endogène). Effet vasopresseur modéré + inotrope. <strong>Utilisable en VVP</strong> car effet moins concentré et bref.</p>
+      <dl class="kv">
+        <dt>Indication phare</dt><dd>Hypotension après rachianesthésie ou induction d'AG</dd>
+        <dt>Posologie</dt><dd>3-9 mg en bolus IVD, répété si besoin (amp 30 mg/10 mL diluée)</dd>
+        <dt>CI relative</dt><dd>Tachycardie marquée</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <h3>Néosynéphrine (Phényléphrine)</h3>
+      <span class="pill">α₁ pur</span>
+      <p>Vasoconstricteur α pur, <strong>sans effet chronotrope</strong> (ne tachycardise pas). Utilisée en bolus pour traiter une hypotension péri-anesthésique, parfois en IVSE en pédiatrie ou en obstétrique.</p>
+      <dl class="kv">
+        <dt>Posologie bolus</dt><dd>50-100 µg IVD (dilution stricte)</dd>
+        <dt>Posologie IVSE</dt><dd>0,1-1 µg/kg/min en VVC</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <h3>Dopamine</h3>
+      <p>Action <strong>dose-dépendante</strong> : faible dose → vasodilatation rénale (effet aujourd'hui controversé), moyenne dose → inotrope (β₁), forte dose → vasoconstricteur (α). <strong>De moins en moins utilisée</strong> en réa au profit de noradré + dobutamine.</p>
+      <dl class="kv">
+        <dt>Posologie</dt><dd>2-20 µg/kg/min IVSE</dd>
+        <dt>Voie</dt><dd>VVC (dose &gt; 5 µg/kg/min)</dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <h3>Isoprénaline (Isuprel)</h3>
+      <p><strong>β₁ + β₂ pur</strong>. Effet chronotrope puissant (accélère le cœur). Utilisée dans les <strong>bradycardies extrêmes</strong>, torsades de pointes, blocs auriculo-ventriculaires complets en attendant un pacemaker.</p>
+    </div>
+
+    <div class="card">
+      <h3>Vasopressine / Terlipressine</h3>
+      <p>Action <strong>indépendante</strong> des récepteurs adrénergiques (récepteurs V1). Utilisée en seconde intention dans le choc septique réfractaire, ou en gastro pour les ruptures de varices œsophagiennes (terlipressine).</p>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h3>Règles pratiques de manipulation</h3>
+    <ul>
+      <li><strong>Une voie dédiée</strong> à la catécho (proximale du KT central de préférence) — pas de relais flou, jamais de bolus médicamenteux sur la même tubulure.</li>
+      <li><strong>Pas d'arrêt brutal</strong> : sevrage <strong>progressif</strong>, par paliers, sous surveillance PAM (sinon rebond hypotensif).</li>
+      <li><strong>Relais de seringue</strong> : "<em>en Y</em>", la nouvelle seringue est branchée et démarrée <strong>au même débit</strong> avant d'arrêter l'ancienne — pas de coupure. Certains services utilisent le SmartPump / changement automatique.</li>
+      <li>Étiquetage clair de la seringue : <strong>nom DCI + concentration + débit cible</strong>.</li>
+      <li>Tubulure spécifique catécho (souvent opaque/jaune), pas de filtre.</li>
+      <li>Vérifier <strong>2 fois</strong> la concentration : préparation = source d'erreurs graves.</li>
+    </ul>
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"transfu",
+  num:"04",
+  title:"Transfusion sanguine",
+  eyebrow:"Chapitre 04 · CGR, PFC, plaquettes",
+  lede:"Compatibilité, contrôle ultime, surveillance, complications. En urgence vitale : oui, on peut transfuser <strong>CGR et plasma simultanément</strong> — voire selon un protocole 1:1:1.",
+  html:`
+  <div class="card">
+    <h3>Les produits sanguins labiles (PSL)</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Produit</th><th>Volume</th><th>Conservation</th><th>Durée de transfusion</th><th>Indication principale</th></tr></thead>
+      <tbody>
+        <tr><td><strong>CGR</strong> (concentré globulaire)</td><td>≈ 280 mL</td><td>+2 à +6 °C, 42 j</td><td>1h30 à 3h (max <strong>4h</strong>)</td><td>Anémie symptomatique, hémorragie</td></tr>
+        <tr><td><strong>PFC</strong> (plasma frais congelé)</td><td>≈ 200 mL</td><td>Congelé −25°C ; décongelé → utilisable 6h max</td><td>30 min env. (selon prescription)</td><td>Coagulopathie, transfusion massive</td></tr>
+        <tr><td><strong>CPA / MCP</strong> (plaquettes)</td><td>≈ 200-300 mL</td><td>+22 °C, agitation, 5 j</td><td>30 min env.</td><td>Thrombopénie &lt; 20 G/L ou hémorragique</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Compatibilité ABO & Rhésus</h3>
+      <h4>CGR — règle du donneur compatible</h4>
+      <ul>
+        <li><strong>O négatif</strong> = donneur universel CGR (urgence vitale immédiate)</li>
+        <li><strong>AB positif</strong> = receveur universel CGR</li>
+        <li>Toujours iso-Rhésus chez la femme en âge de procréer (prévention allo-immunisation anti-D)</li>
+      </ul>
+      <h4>PFC — règle inversée</h4>
+      <ul>
+        <li><strong>AB</strong> = donneur universel de plasma (pas d'anticorps anti-A ni anti-B)</li>
+        <li><strong>O</strong> = receveur universel de plasma</li>
+      </ul>
+      <h4>Plaquettes</h4>
+      <ul>
+        <li>Compatibilité ABO préférable mais pas absolue. Rhésus important chez femme jeune.</li>
+      </ul>
+      <div class="callout info"><strong>Astuce mnémo :</strong> CGR = on transmet les <em>antigènes</em> du globule donneur. PFC = on transmet les <em>anticorps</em> du plasma → règle inverse.</div>
+    </div>
+
+    <div class="card">
+      <h3>Avant la transfusion</h3>
+      <ol>
+        <li><strong>Prescription médicale</strong> nominative datée signée, indiquant le PSL et la quantité.</li>
+        <li><strong>Groupage</strong> ABO/Rh (2 déterminations, 2 prélèvements distincts) + <strong>RAI</strong> de moins de 72h.</li>
+        <li>Information du patient + consentement, vérification de l'identité.</li>
+        <li>Réception du PSL : vérification concordance carte de groupe / poche / patient / fiche de délivrance.</li>
+        <li><strong>Contrôle ultime pré-transfusionnel au lit du patient (CUPT)</strong> — étape <strong>infirmière</strong> incontournable.</li>
+      </ol>
+
+      <h4>Le Contrôle Ultime au lit du patient</h4>
+      <p>Réalisé <strong>par l'IDE qui pose la poche</strong>, au lit, juste avant la pose. <strong>Pour chaque poche.</strong></p>
+      <ul>
+        <li>Contrôle de concordance : identité patient / fiche / carte de groupe / poche.</li>
+        <li>Contrôle de compatibilité ABO sur <strong>carte type Beth-Vincent</strong> : on dépose 1 goutte de sang patient et 1 goutte de sang de la poche dans les puits avec sérums anti-A et anti-B → on lit l'agglutination.</li>
+        <li>Ne jamais transfuser si le moindre doute.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Pendant la transfusion</h3>
+      <ul>
+        <li>Constantes <strong>avant</strong>, puis à <strong>T+5, T+15 min</strong>, puis surveillance régulière jusqu'à la fin (PA, FC, T°, FR, SpO₂).</li>
+        <li>Patient à portée de regard les premières minutes.</li>
+        <li>Tubulure à <strong>filtre</strong> spécifique 170-260 µm.</li>
+        <li>Voie veineuse de <strong>20 G minimum</strong> (idéal 18 G).</li>
+        <li>Pas de médicament dans la même voie. Rinçage NaCl 0,9% avant/après. <strong>JAMAIS</strong> de Ringer Lactate sur la même ligne qu'un CGR (le calcium chélate le citrate anticoagulant → coagulation dans la tubulure).</li>
+        <li>Durée : 1h30-3h pour CGR (jamais &gt;4h après sortie du frigo).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Réaction transfusionnelle</h3>
+      <p>Tout signe anormal : <strong>STOP immédiat de la transfusion</strong>, garder la voie veineuse avec NaCl 0,9%, appeler le médecin, conserver la poche + tubulure.</p>
+
+      <h4>Signes d'alerte</h4>
+      <ul>
+        <li>Frissons, fièvre &gt; 1°C, sueurs.</li>
+        <li>Douleur thoracique, lombaire, dyspnée, oppression.</li>
+        <li>Hypotension, tachycardie, choc.</li>
+        <li>Urticaire, prurit, angio-œdème.</li>
+        <li>Urines rouges/foncées (hémolyse).</li>
+      </ul>
+
+      <h4>Étiologies à connaître</h4>
+      <ul>
+        <li><strong>Incompatibilité ABO</strong> (erreur d'identité) — hémolyse intravasculaire aiguë, urgence vitale.</li>
+        <li><strong>TRALI</strong> : œdème pulmonaire lésionnel (anticorps anti-HLA du donneur).</li>
+        <li><strong>TACO</strong> : surcharge volémique (OAP), sujet âgé / insuffisant cardiaque.</li>
+        <li><strong>Allergie</strong> (urticaire → choc anaphylactique).</li>
+        <li>Réaction <strong>fébrile non hémolytique</strong> (cytokines).</li>
+        <li>Contamination bactérienne (rare, plaquettes++).</li>
+      </ul>
+      <div class="callout crit">Toute réaction → <strong>fiche d'effet indésirable receveur (EIR)</strong> + retour de la poche à l'EFS. C'est de la <strong>matériovigilance</strong> obligatoire.</div>
+    </div>
+
+    <div class="card">
+      <h3>Transfusion massive — Hémorragie</h3>
+      <div class="row-tags"><span class="pill crit">Urgence vitale</span></div>
+      <p>Hémorragie massive = perte ≥ 1 masse sanguine en 24h, ou ≥ 50% en 3h, ou besoin de ≥ 4 CGR en 1h. Protocole spécifique.</p>
+
+      <h4>Protocole 1:1:1</h4>
+      <p>Ratio <strong>1 CGR : 1 PFC : 1 CPA</strong> (concentré plaquettaire) — vise à reproduire la composition du sang total et prévenir la coagulopathie.</p>
+
+      <div class="callout warn"><strong>Oui</strong>, en urgence vitale on peut <strong>passer plusieurs poches en même temps</strong> (CGR + PFC + plaquettes) sur des voies différentes, voire via un <strong>accélérateur-réchauffeur</strong> (type Belmont, Level 1). Privilégier 2 voies de gros calibre (16-18 G) ou VVC trilumière.</div>
+
+      <h4>Mesures associées</h4>
+      <ul>
+        <li>Acide tranexamique (Exacyl) 1 g IV en 10 min puis 1 g sur 8h si trauma &lt; 3h.</li>
+        <li>Calcium IV (le citrate des PSL chélate le Ca²⁺ → hypocalcémie ionisée).</li>
+        <li>Réchauffement actif (couvertures, fluides réchauffés) — l'hypothermie aggrave la coagulopathie.</li>
+        <li>Surveillance bilan : NFS, TP/TCA, fibrinogène, ionogramme, calcémie ionisée, lactates.</li>
+      </ul>
+      <p>Objectif : <strong>triade létale</strong> à briser : acidose + hypothermie + coagulopathie.</p>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"solutes",
+  num:"05",
+  title:"Solutés & perfusions",
+  eyebrow:"Chapitre 05 · cristalloïdes, colloïdes, électrolytes",
+  lede:"NaCl, Ringer, G5%, albumine, KCl : à quoi sert chaque soluté, dans quelle indication, et lesquels sont vraiment incompatibles.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>NaCl 0,9% (sérum physiologique)</h3>
+      <div class="row-tags"><span class="pill">Cristalloïde isotonique</span></div>
+      <p>Standard du remplissage, du rinçage des voies, de la dilution de la plupart des médicaments. Osmolarité ≈ 308 mOsm/L (proche du plasma).</p>
+      <ul>
+        <li>Indications : remplissage modéré, déshydratation, véhicule médicamenteux.</li>
+        <li>Attention : grand volume → <strong>acidose hyperchlorémique</strong> (trop de Cl⁻).</li>
+        <li>Compatible avec quasi tous les médicaments (vérifier toujours).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Ringer Lactate</h3>
+      <div class="row-tags"><span class="pill">Cristalloïde balancé</span></div>
+      <p>Solution équilibrée : Na⁺, Cl⁻, K⁺, <strong>Ca²⁺</strong>, lactate (métabolisé en bicarbonate). Composition plus proche du plasma → moins d'acidose hyperchlorémique. <strong>Soluté de choix pour le remplissage en réa et au bloc.</strong></p>
+      <div class="callout crit"><strong>Incompatibilités majeures du Ringer Lactate :</strong>
+        <ul style="margin:6px 0 0 16px">
+          <li><strong>CGR</strong> — le calcium chélate le citrate → coagulation dans la tubulure.</li>
+          <li><strong>Ceftriaxone</strong> (Rocéphine) chez le nouveau-né — précipitation calcium-ceftriaxone fatale. À distance d'au moins 48h ou voies différentes.</li>
+          <li>Bicarbonate (précipitation), phosphate.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Glucosé 5% (G5)</h3>
+      <p>Solution de glucose à 5% (50 g/L). Apport hydrique pur (le glucose est métabolisé → eau libre). Osmolarité 278 mOsm/L.</p>
+      <ul>
+        <li>Indications : hydratation, véhicule médicamenteux, prévention hypoglycémie.</li>
+        <li><strong>Ne pas utiliser pour le remplissage</strong> (l'eau libre passe en intracellulaire et ne reste pas en intravasculaire).</li>
+        <li>G10%, G30% : apports caloriques, hypoglycémies sévères, NP — <strong>G30% nécessite une VVC</strong> (hyperosmolaire).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>KCl (Chlorure de potassium)</h3>
+      <div class="row-tags"><span class="pill crit">Médicament à risque ++</span></div>
+      <p>Soluté de correction des hypokaliémies. <strong>Cause classique d'erreurs mortelles</strong> : bolus IVD = arrêt cardiaque immédiat.</p>
+      <ul>
+        <li><strong>JAMAIS</strong> en IVD, JAMAIS pur. Toujours dilué.</li>
+        <li>Vitesse de perfusion : <strong>max 1 g/h en VVP</strong>, max 1,5 à 2 g/h en VVC (scope obligatoire).</li>
+        <li>Concentration max VVP : 4 g/L (= 4 amp de 1g dans 1L). En VVC : possible plus concentré.</li>
+        <li>Surveillance : ECG/scope, ionogramme, fonction rénale.</li>
+      </ul>
+      <div class="callout crit">Le KCl est un <strong>médicament "à risque"</strong> rangé séparément, double contrôle infirmier, étiquetage spécifique.</div>
+    </div>
+
+    <div class="card">
+      <h3>Bicarbonate de sodium</h3>
+      <p>Indications très ciblées : acidose métabolique sévère (pH &lt; 7,1), hyperkaliémie menaçante, intoxication aux tricycliques.</p>
+      <ul>
+        <li>Bicar <strong>1,4%</strong> (isotonique) : possible en VVP.</li>
+        <li>Bicar <strong>4,2% et 8,4%</strong> (semi-molaire / molaire) : <strong>VVC obligatoire</strong> (hyperosmolaire, veinotoxique).</li>
+        <li>Incompatible avec catécholamines, calcium (précipitation), Ringer lactate.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Albumine</h3>
+      <div class="row-tags"><span class="pill info">Colloïde</span></div>
+      <p>Produit dérivé du sang humain. Pouvoir oncotique = retient l'eau dans le secteur intravasculaire.</p>
+      <ul>
+        <li><strong>Albumine 4%</strong> : remplissage en cas d'hypovolémie + hypoalbuminémie.</li>
+        <li><strong>Albumine 20%</strong> : œdème réfractaire, paracentèse de grand volume (cirrhose), hypoalbuminémie sévère.</li>
+        <li>Considérée comme un PSL → traçabilité, mais pas de contrôle ultime ABO.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>HEA (Hydroxyéthylamidon)</h3>
+      <p>Colloïde de synthèse, <strong>très restreint aujourd'hui</strong> (effets indésirables rénaux, mortalité) — interdit en réa pour le choc septique. Réservé à des indications péri-op spécifiques.</p>
+    </div>
+
+    <div class="card">
+      <h3>Magnésium IV</h3>
+      <p>Indications : torsade de pointes (1-2 g IV lent), pré-éclampsie/éclampsie (4 g de charge puis 1 g/h), asthme aigu grave (2 g IV en 20 min).</p>
+      <p>Surveillance : réflexes ostéo-tendineux, FR, diurèse (toxicité : aréflexie, dépression respiratoire).</p>
+    </div>
+
+  </div>
+
+  <div class="callout warn"><span class="label">Règle d'osmolarité</span> Au-delà de <strong>800-900 mOsm/L</strong>, un soluté doit passer en <strong>voie centrale</strong> (G30%, NP industrielle, KCl très concentré, certains bicar). Veinotoxicité majeure sur VVP.</div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"urgences",
+  num:"06",
+  title:"Urgences vitales",
+  eyebrow:"Chapitre 06 · ACR, choc, anaphylaxie, OAP, AVC",
+  lede:"Les algorithmes à connaître par cœur. Tout commence par l'<strong>ABCDE</strong>.",
+  html:`
+  <div class="card">
+    <h3>Algorithme ABCDE</h3>
+    <p>Évaluation systématique de tout patient grave, dans l'<strong>ordre</strong>, en corrigeant chaque problème avant de passer au suivant.</p>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Lettre</th><th>Évaluation</th><th>Actions</th></tr></thead>
+      <tbody>
+        <tr><td><strong>A</strong>irway</td><td>Liberté des voies aériennes, corps étranger, gargouillis, stridor</td><td>Libération VAS (subluxation mâchoire, aspiration), canule de Guédel, intubation si Glasgow &lt; 8</td></tr>
+        <tr><td><strong>B</strong>reathing</td><td>FR, SpO₂, auscultation, signes de lutte, cyanose</td><td>O₂, position semi-assise, VNI, intubation</td></tr>
+        <tr><td><strong>C</strong>irculation</td><td>PA, FC, TRC, marbrures, diurèse, hémorragie visible</td><td>VVP × 2 (gros calibre), remplissage, compression hémorragique, scope</td></tr>
+        <tr><td><strong>D</strong>isability</td><td>Glasgow, pupilles, glycémie capillaire (HGT), déficit focal</td><td>Resucrage si hypoglycémie, position latérale, NaCl si HTIC, corriger l'hypoxie</td></tr>
+        <tr><td><strong>E</strong>xposure</td><td>Déshabillage, T°, examen complet (face, dos), lésions cachées</td><td>Réchauffement, AVPU, hémocs, bilan complet, anamnèse SAMPLE</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Arrêt cardio-respiratoire (ACR)</h3>
+      <div class="row-tags"><span class="pill crit">Urgence vitale absolue</span></div>
+      <p><strong>Diagnostic :</strong> patient inconscient + absence de respiration normale (gasps possibles) + absence de pouls (carotidien, &lt; 10 sec de recherche). <strong>Démarrer la RCP en moins de 10 sec.</strong></p>
+
+      <h4>RCP de base (BLS)</h4>
+      <ul>
+        <li><strong>Massage cardiaque externe</strong> : 100-120/min, sternum (moitié inférieure), enfoncement <strong>5-6 cm</strong>, relâchement complet, le moins d'interruptions possibles.</li>
+        <li>Ratio <strong>30 compressions : 2 insufflations</strong> (BAVU avec O₂ haut débit) avant intubation.</li>
+        <li>Après intubation : <strong>MCE continu</strong> 100-120/min + ventilation 10/min.</li>
+        <li>Alterner le masseur toutes les 2 min (fatigue).</li>
+      </ul>
+
+      <h4>Défibrillation</h4>
+      <ul>
+        <li>Brancher le défibrillateur dès que possible. Analyse → choc si rythme choquable.</li>
+        <li><strong>Rythmes chocables :</strong> FV (fibrillation ventriculaire), TV sans pouls.</li>
+        <li><strong>Rythmes non chocables :</strong> asystolie, AESP (activité électrique sans pouls).</li>
+        <li>Énergie : 150-200 J biphasique (selon machine), reprendre MCE <strong>immédiatement</strong> 2 min avant nouvelle analyse.</li>
+      </ul>
+
+      <h4>Drogues</h4>
+      <ul>
+        <li><strong>Adrénaline 1 mg IV/IO</strong> toutes les 3-5 min — démarrer après le 3e choc en FV/TV, immédiatement en rythme non chocable.</li>
+        <li><strong>Amiodarone 300 mg IV/IO</strong> après le 3e choc (FV/TV réfractaire), puis 150 mg après le 5e choc.</li>
+      </ul>
+
+      <h4>Chercher la cause — les 4H et 4T</h4>
+      <ul>
+        <li><strong>Hypoxie, Hypovolémie, Hyper/Hypokaliémie, Hypothermie</strong></li>
+        <li><strong>Tamponnade, Toxiques, Thrombose (EP/IDM), pneumoThorax compressif</strong></li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Choc anaphylactique</h3>
+      <div class="row-tags"><span class="pill crit">IM ! pas IV !</span></div>
+      <p>Réaction allergique généralisée avec atteinte cardio-respi : œdème laryngé, bronchospasme, vasodilatation et fuite capillaire → choc.</p>
+      <h4>Traitement</h4>
+      <ol>
+        <li>Arrêt de l'allergène présumé.</li>
+        <li><strong>Adrénaline 0,5 mg IM</strong> face antéro-latérale de la cuisse (0,01 mg/kg enfant, max 0,5 mg). À répéter toutes les 5-10 min si pas d'amélioration.</li>
+        <li>Décubitus dorsal, jambes surélevées si hypoTA. Position semi-assise si dyspnée.</li>
+        <li>O₂ haut débit (MHC).</li>
+        <li>Remplissage : 500-1000 mL NaCl 0,9% en bolus.</li>
+        <li>2e ligne : corticoïdes (méthylprednisolone 1-2 mg/kg), anti-H1 (dexchlorphéniramine), salbutamol si bronchospasme.</li>
+        <li>Si réfractaire : adrénaline IVSE en VVC.</li>
+      </ol>
+      <div class="callout warn">L'<strong>IM cuisse</strong> est la voie de référence. L'IV est réservée au réfractaire en réa par un médecin. JAMAIS d'adrénaline IVD en première intention (risque TdR).</div>
+    </div>
+
+    <div class="card">
+      <h3>OAP cardiogénique</h3>
+      <p>Œdème aigu du poumon par insuffisance cardiaque gauche aiguë : engorgement pulmonaire, dyspnée intense, orthopnée, crépitants bilatéraux, expectoration mousseuse rosée.</p>
+      <h4>Conduite</h4>
+      <ul>
+        <li>Position <strong>assise jambes pendantes</strong>.</li>
+        <li>O₂ haute concentration → <strong>CPAP</strong> +++ (Boussignac, masque) très rapidement.</li>
+        <li><strong>Furosémide</strong> 40-80 mg IV (1 mg/kg).</li>
+        <li><strong>Dérivés nitrés</strong> sublingual (Natispray) puis IV (Risordan) si PAS &gt; 110 — vasodilatateurs.</li>
+        <li>Morphine titrée si anxiété/douleur (et FR conservée).</li>
+        <li>Traitement étiologique : IDM, FA, poussée HTA, anémie…</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Choc septique</h3>
+      <p>Infection sévère + dysfonction d'organe + hypotension persistante malgré remplissage adéquat, avec lactates &gt; 2 mmol/L. Mortalité &gt; 30%.</p>
+      <h4>Bundle 1 heure (Surviving Sepsis Campaign)</h4>
+      <ol>
+        <li>Mesure des <strong>lactates</strong>.</li>
+        <li><strong>Hémocultures × 2</strong> AVANT antibiothérapie (mais sans la retarder).</li>
+        <li><strong>Antibiothérapie large spectre</strong> dans l'heure (probabiliste selon foyer).</li>
+        <li><strong>Remplissage</strong> 30 mL/kg de cristalloïde (Ringer Lactate) si hypotension ou lactates &gt; 4.</li>
+        <li><strong>Noradrénaline</strong> en VVC si PAM &lt; 65 mmHg après remplissage.</li>
+      </ol>
+      <p>Surveillance : PAM ≥ 65, diurèse ≥ 0,5 mL/kg/h, lactates qui baissent, scope.</p>
+    </div>
+
+    <div class="card">
+      <h3>AVC ischémique</h3>
+      <p>Déficit neurologique brutal focal. Heure du début capitale (fenêtre de thrombolyse / thrombectomie).</p>
+      <h4>Conduite IDE</h4>
+      <ul>
+        <li>Évaluation FAST : <strong>F</strong>ace (asymétrie), <strong>A</strong>rm (déficit moteur), <strong>S</strong>peech (troubles de la parole), <strong>T</strong>ime (heure du début).</li>
+        <li>Score NIHSS (médecin).</li>
+        <li>Glycémie capillaire (hypoglycémie = stroke mimic).</li>
+        <li>Maintenir PA, ne pas trop traiter une HTA (cible PA &lt; 185/110 si thrombolyse envisagée).</li>
+        <li>NaCl 0,9% (jamais G5 → œdème cérébral).</li>
+        <li>Position : tête à 30° si pas d'instabilité.</li>
+        <li>À jeun (risque fausse route).</li>
+        <li>IRM ou TDM en urgence.</li>
+        <li>Thrombolyse IV (altéplase) si &lt; 4h30, thrombectomie si occlusion proximale &lt; 6h-24h.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>SCA — Syndrome coronarien aigu</h3>
+      <p>Douleur thoracique constrictive, irradiation bras G/mâchoire, sueurs, dyspnée. ECG <strong>18 dérivations</strong> à l'arrivée + à 30 min.</p>
+      <h4>STEMI (sus-décalage ST)</h4>
+      <ul>
+        <li>Reperfusion <strong>urgente</strong> : coronarographie + angioplastie si délai &lt; 120 min, sinon fibrinolyse.</li>
+        <li>"MONA-BASH" : Morphine, O₂ (si SpO₂ &lt; 90%), Nitrés, Aspirine, Bêta-bloquants, Anticoag (HBPM/HNF), Statines, Heparine/Antiagrégant 2e (ticagrélor, clopidogrel).</li>
+      </ul>
+      <h4>NSTEMI / angor instable</h4>
+      <ul>
+        <li>Troponines à H0 et H3, ECG, prise en charge cardio.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Embolie pulmonaire</h3>
+      <p>Dyspnée brutale, douleur thoracique, hypoxie, tachycardie, parfois choc. Score de Wells, D-dimères, angio-TDM thoracique.</p>
+      <ul>
+        <li>EP grave (choc) : <strong>thrombolyse</strong> + héparine.</li>
+        <li>EP non grave : héparine (HBPM ou HNF) puis AOD ou AVK.</li>
+        <li>O₂, scope, repos strict, VVP.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Hypoglycémie</h3>
+      <p>Glycémie &lt; 0,7 g/L (3,9 mmol/L). Sueurs, tremblements, troubles du comportement → coma, convulsions.</p>
+      <ul>
+        <li>Patient conscient : <strong>resucrage per os</strong> 15 g (3 sucres, jus de fruit) + recontrôle 15 min.</li>
+        <li>Patient inconscient : <strong>G30%</strong> 30 mL IVD (3 ampoules de 10 mL) + relais G10%.</li>
+        <li>Si pas de voie : <strong>glucagon 1 mg SC/IM</strong>.</li>
+        <li>Surveillance HGT régulière, chercher la cause (insuline, sulfamides, jeûne, OH).</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"chocs",
+  num:"07",
+  title:"États de choc",
+  eyebrow:"Chapitre 07 · les 4 grands types & leur prise en charge",
+  lede:"Le choc est une <strong>défaillance circulatoire aiguë</strong> avec hypoperfusion tissulaire et altération du métabolisme cellulaire de l'O₂. <strong>Un patient peut être en choc avec une TA normale</strong> — c'est la perfusion d'organe qui compte, pas seulement le chiffre.",
+  html:`
+  <div class="card">
+    <h3>Définition & principes</h3>
+    <p>Le choc est une <strong>défaillance circulatoire aiguë et critique</strong> mettant en jeu le pronostic vital, avec un <strong>déficit de perfusion des organes</strong> et une altération du <strong>métabolisme cellulaire de l'oxygène</strong>. En cas d'échec des mécanismes de compensation :</p>
+    <ul>
+      <li>Hypoxie cellulaire</li>
+      <li>Métabolisme anaérobie</li>
+      <li>Production de <strong>lactates</strong></li>
+      <li>Acidose métabolique lactique</li>
+    </ul>
+    <div class="callout crit"><strong>Piège fondamental :</strong> un patient peut être en choc <strong>avec une TA normale</strong> au début (compensation). Ce qui doit alerter : marbrures, oligurie, troubles neuro, lactates, polypnée. Ne pas attendre l'hypotension pour agir.</div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Signes cliniques — savoir les chercher</h3>
+      <h4>Neurologiques</h4>
+      <ul>
+        <li>Agitation, confusion, somnolence, coma — reflet de l'hypoperfusion cérébrale.</li>
+      </ul>
+      <h4>Respiratoires</h4>
+      <ul>
+        <li><strong>Polypnée</strong> (souvent le tout premier signe — compense l'acidose métabolique et l'hypoxie).</li>
+        <li>Dyspnée, tirage.</li>
+      </ul>
+      <h4>Cutanés (signes de bas débit)</h4>
+      <ul>
+        <li><strong>Marbrures</strong> (genoux, cuisses, abdomen) — score de marbrures sur 5.</li>
+        <li>Pâleur, cyanose des extrémités.</li>
+        <li>Froideur, extrémités glacées.</li>
+        <li><strong>TRC (temps de recoloration cutanée) &gt; 3 secondes.</strong></li>
+        <li>Augmentation du <strong>gradient de température centrale-périphérique</strong>.</li>
+      </ul>
+      <h4>Rénaux</h4>
+      <ul>
+        <li><strong>Oligurie</strong> &lt; 0,5 mL/kg/h. <em>Surveiller la diurèse !</em></li>
+        <li>Anurie dans les formes sévères.</li>
+      </ul>
+      <h4>Digestifs</h4>
+      <ul>
+        <li>Diarrhées, douleurs abdominales (souffrance mésentérique).</li>
+        <li>Iléus, vomissements.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Signes de compensation</h3>
+      <p>Le corps tente de maintenir la perfusion d'organe — c'est ce qui masque le choc à ses débuts.</p>
+      <ul>
+        <li><strong>Tachycardie</strong> (DC = VES × FC : si VES baisse, FC augmente pour compenser).</li>
+        <li><strong>Vasoconstriction périphérique</strong> (priorise cœur/cerveau, sacrifie peau/reins/digestif).</li>
+        <li><strong>Polypnée</strong> (compense l'acidose métabolique en éliminant du CO₂ ; compense l'hypoxie).</li>
+      </ul>
+      <div class="callout warn">Chez le sujet âgé, sous bêta-bloquants, ou en cas de neuropathie autonome (diabétique), la <strong>tachycardie peut manquer</strong> → ne pas se rassurer sur une FC normale.</div>
+    </div>
+
+    <div class="card">
+      <h3>Rappels physiologiques essentiels</h3>
+      <h4>Le cœur = pompe</h4>
+      <p>Le <strong>débit cardiaque (DC)</strong> est ce qui irrigue les organes.</p>
+      <p class="mono">DC = VES × FC</p>
+      <p>Le <strong>volume d'éjection systolique (VES)</strong> dépend de :</p>
+      <ul>
+        <li><strong>Précharge</strong> (remplissage ventriculaire — déterminée par la volémie et le retour veineux)</li>
+        <li><strong>Contractilité</strong> (inotropisme — fonction propre du muscle cardiaque)</li>
+        <li><strong>Postcharge</strong> (résistances vasculaires que doit vaincre le VG)</li>
+      </ul>
+
+      <h4>Transport de l'oxygène (TaO₂)</h4>
+      <p class="mono">TaO₂ ≈ DC × Hb × SaO₂ × 1,34 + PaO₂ × 0,003</p>
+      <p>Trois paramètres pratiques sur lesquels on agit :</p>
+      <ul>
+        <li><strong>DC</strong> (remplissage, inotropes)</li>
+        <li><strong>Hb</strong> (transfusion CGR)</li>
+        <li><strong>SaO₂</strong> (oxygénothérapie, ventilation)</li>
+      </ul>
+      <p>Le chemin de l'O₂ : <strong>Transport (TaO₂)</strong> dans le sang → <strong>Extraction</strong> aux tissus → <strong>Consommation (VO₂)</strong> par les cellules. Un choc = défaillance à un ou plusieurs niveaux de cette chaîne.</p>
+    </div>
+
+    <div class="card">
+      <h3>Gaz du sang dans le choc</h3>
+      <h4>Valeurs de référence</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Paramètre</th><th>Norme</th><th>Dans le choc</th></tr></thead>
+          <tbody>
+            <tr><td>pH</td><td>7,35 - 7,45</td><td>↓ acidose métabolique</td></tr>
+            <tr><td>PaCO₂</td><td>35-45 mmHg</td><td>↓ (compensation par polypnée)</td></tr>
+            <tr><td>PaO₂</td><td>80-100 mmHg</td><td>variable selon étiologie</td></tr>
+            <tr><td>HCO₃⁻</td><td>22-26 mmol/L</td><td>↓ (consommé pour tamponner)</td></tr>
+            <tr><td>Lactates</td><td>&lt; 2 mmol/L</td><td><strong>↑↑ marqueur clé</strong></td></tr>
+            <tr><td>SvO₂ (centrale)</td><td>70-80%</td><td>&lt; 65% = extraction excessive = bas débit</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>Plus les lactates sont élevés et plus ils <strong>persistent</strong> dans le temps, plus le pronostic est sombre. La <strong>clairance des lactates</strong> est un objectif thérapeutique (baisse de 10-20% / 2h).</p>
+    </div>
+
+  </div>
+
+  <div class="card" style="margin-top:18px">
+    <h3>Les 4 grandes catégories de choc</h3>
+    <p>Mémo : <strong>distributif, cardiogénique, hypovolémique, obstructif</strong>. Chacun a un mécanisme distinct → traitement différent.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Type</th><th>Mécanisme</th><th>Précharge</th><th>Postcharge</th><th>Débit cardiaque</th><th>Peau</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Distributif</strong> (septique, anaphyl., spinal)</td><td>Vasodilatation massive</td><td>↓ (hypovolémie relative)</td><td>↓↓</td><td>↑ ou normal puis ↓</td><td>Chaude/sèche (phase initiale)</td></tr>
+          <tr><td><strong>Cardiogénique</strong></td><td>Défaillance de pompe</td><td>↑↑ (engorgement)</td><td>↑ (vasoconstriction réflexe)</td><td>↓↓</td><td>Froide, marbrée</td></tr>
+          <tr><td><strong>Hypovolémique</strong></td><td>Perte de volume</td><td>↓↓</td><td>↑</td><td>↓</td><td>Froide, pâle</td></tr>
+          <tr><td><strong>Obstructif</strong></td><td>Obstacle au remplissage/éjection</td><td>↓ (ne peut pas se remplir)</td><td>↑</td><td>↓</td><td>Froide, turgescence jug</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>A. Choc distributif (vasoplégique)</h3>
+      <p>Perte du tonus vasculaire → vasodilatation massive → hypovolémie <strong>relative</strong> (le contenant devient trop grand pour le contenu).</p>
+
+      <h4>1) Choc septique</h4>
+      <div class="row-tags"><span class="pill crit">Mortalité &gt; 30%</span></div>
+      <ul>
+        <li><strong>Cause :</strong> infection sévère + réponse inflammatoire excessive (orage cytokinique).</li>
+        <li><strong>Signes :</strong> fièvre OU hypothermie, frissons, foyer infectieux, hypotension persistant après remplissage, lactates &gt; 2.</li>
+        <li><strong>Risques :</strong> CIVD, défaillance multiviscérale (SDMV).</li>
+      </ul>
+      <h5 style="margin:8px 0 4px;font-family:Fraunces,serif">Bundle 1 heure (Surviving Sepsis Campaign)</h5>
+      <ol>
+        <li>Dosage des <strong>lactates</strong>.</li>
+        <li><strong>Hémocultures × 2</strong> AVANT antibiothérapie (sans la retarder).</li>
+        <li><strong>Antibiothérapie probabiliste large spectre</strong> dans l'heure.</li>
+        <li><strong>Remplissage 30 mL/kg</strong> de cristalloïde (Ringer Lactate).</li>
+        <li><strong>Noradrénaline</strong> en VVC si PAM &lt; 65 après remplissage.</li>
+        <li>Contrôle du foyer infectieux (drainage, chirurgie, retrait KT).</li>
+      </ol>
+
+      <h4>2) Choc anaphylactique</h4>
+      <ul>
+        <li><strong>Causes :</strong> aliments, médicaments (β-lactamines, curares, latex), venins, piqûres d'insectes, produits de contraste iodés.</li>
+        <li><strong>Signes :</strong> prurit, urticaire, œdème de Quincke, bronchospasme, hypotension, douleur abdo, vomissements.</li>
+      </ul>
+      <div class="callout crit"><strong>Traitement majeur : ADRÉNALINE IM</strong><br>
+        • <strong>0,01 mg/kg IM</strong> (max 0,5 mg adulte, 0,3 mg enfant)<br>
+        • Face antéro-latérale de cuisse<br>
+        • Renouvelable à 5 min si besoin<br>
+        • <strong>Pas d'IV en première intention</strong> (risque TdR)
+      </div>
+      <p>Mesures associées : arrêt de l'allergène, O₂ haut débit (MHC), remplissage cristalloïde 500-1000 mL bolus, décubitus jambes surélevées, salbutamol nébulisé si bronchospasme. 2e ligne : corticoïdes, anti-H1. Si réfractaire : adrénaline IVSE en VVC.</p>
+
+      <h4>3) Choc spinal (neurogénique)</h4>
+      <ul>
+        <li><strong>Cause :</strong> lésion médullaire (trauma rachis cervical/thoracique haut) → interruption du système sympathique → vasoplégie + bradycardie paradoxale.</li>
+        <li><strong>Signes :</strong> hypotension, <strong>bradycardie</strong> (≠ autres chocs !), déficit neurologique, peau chaude et sèche.</li>
+        <li><strong>Traitement :</strong> remplissage modéré, noradrénaline précoce (cible PAM 85-90 pour perfusion médullaire), atropine si bradycardie. Immobilisation rachidienne stricte.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>B. Choc cardiogénique</h3>
+      <p>Défaillance de la pompe cardiaque → baisse du débit cardiaque malgré une précharge conservée (voire augmentée).</p>
+      <h4>Causes</h4>
+      <ul>
+        <li>Infarctus du myocarde étendu (cause n°1).</li>
+        <li>Troubles du rythme graves (TV, FV, BAV complet).</li>
+        <li>Myocardite, cardiomyopathie décompensée.</li>
+        <li>Valvulopathie aiguë (rupture de cordage, IM aiguë, dissection aortique sur valve).</li>
+        <li>Toxique (β-bloquants, inhibiteurs calciques).</li>
+      </ul>
+      <h4>Signes</h4>
+      <ul>
+        <li>Orthopnée, OMI (œdèmes des membres inférieurs).</li>
+        <li>OAP (œdème aigu du poumon) — crépitants, expectoration mousseuse rosée.</li>
+        <li>Marbrures, douleur thoracique selon étiologie.</li>
+        <li>Turgescence jugulaire (insuffisance ventriculaire droite associée).</li>
+        <li>Hypotension, oligurie, conscience altérée.</li>
+      </ul>
+      <h4>Traitement</h4>
+      <ul>
+        <li><strong>Revascularisation</strong> en urgence si IDM (coronaro + angioplastie).</li>
+        <li><strong>Dobutamine</strong> (inotrope β₁) en VVC : 2,5-20 µg/kg/min.</li>
+        <li><strong>Noradrénaline</strong> si hypotension associée (souvent en association).</li>
+        <li>Traitement du trouble du rythme (cardioversion, amiodarone, pacing).</li>
+        <li>Diurétiques (furosémide) si surcharge.</li>
+        <li>Assistance circulatoire (ECMO veino-artérielle, ballonnet de contre-pulsion, Impella) dans les formes graves.</li>
+      </ul>
+      <div class="callout warn">Le remplissage est <strong>limité voire contre-indiqué</strong> : la précharge est déjà trop élevée. À l'inverse des autres chocs.</div>
+    </div>
+
+    <div class="card">
+      <h3>C. Choc hypovolémique</h3>
+      <p>Perte de volume circulant — réelle, contrairement au choc distributif où elle est relative.</p>
+      <h4>Causes</h4>
+      <h5>Hémorragiques</h5>
+      <ul>
+        <li>Traumatisme, hémorragie digestive (HDH, HDB), rupture GEU.</li>
+        <li>Hémorragie du post-partum, hématome rétropéritonéal sous AVK.</li>
+      </ul>
+      <h5>Non hémorragiques</h5>
+      <ul>
+        <li>Diarrhées, vomissements (gastro, occlusion).</li>
+        <li>Brûlures étendues, exsudation de plaies.</li>
+        <li>Acidocétose, déshydratation extracellulaire (3e secteur, ascite).</li>
+      </ul>
+      <h4>Signes</h4>
+      <ul>
+        <li><strong>Tachycardie +++</strong> (souvent &gt; 120).</li>
+        <li>Soif intense, pâleur, sueurs.</li>
+        <li><strong>TA pincée</strong> (PAS - PAD diminué : la PAD remonte par vasoconstriction avant que la PAS ne s'effondre).</li>
+        <li>Hypotension orthostatique.</li>
+        <li>Veines plates, TRC allongé.</li>
+      </ul>
+      <h4>Traitement</h4>
+      <ul>
+        <li><strong>Remplissage vasculaire massif</strong> (Ringer Lactate, NaCl 0,9%).</li>
+        <li><strong>Traitement de la cause</strong> : hémostase chirurgicale ou endoscopique, FOGD, embolisation, compression directe.</li>
+        <li><strong>Transfusion si hémorragie</strong> : protocole 1:1:1 (CGR : PFC : plaquettes), Exacyl 1 g si trauma &lt; 3h.</li>
+        <li>Lutte contre la <strong>triade létale</strong> : acidose + hypothermie + coagulopathie.</li>
+      </ul>
+      <h4>Classification de l'hémorragie (ATLS)</h4>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Classe</th><th>Perte (% volémie)</th><th>FC</th><th>PAS</th><th>FR</th><th>Conscience</th></tr></thead>
+          <tbody>
+            <tr><td>I</td><td>&lt; 15%</td><td>&lt; 100</td><td>normale</td><td>14-20</td><td>normale</td></tr>
+            <tr><td>II</td><td>15-30%</td><td>100-120</td><td>normale</td><td>20-30</td><td>anxieux</td></tr>
+            <tr><td>III</td><td>30-40%</td><td>120-140</td><td>↓</td><td>30-40</td><td>confus</td></tr>
+            <tr><td>IV</td><td>&gt; 40%</td><td>&gt; 140</td><td>↓↓</td><td>&gt; 35</td><td>léthargique</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>D. Choc obstructif</h3>
+      <p>Obstacle mécanique au remplissage du cœur ou à l'éjection.</p>
+      <h4>Causes principales</h4>
+      <ul>
+        <li><strong>Embolie pulmonaire</strong> massive — obstacle à l'éjection du VD.</li>
+        <li><strong>Tamponnade péricardique</strong> — épanchement qui comprime le cœur, empêche le remplissage.</li>
+        <li><strong>Pneumothorax compressif</strong> — bascule médiastinale, compression VCS.</li>
+      </ul>
+      <h4>Signes</h4>
+      <ul>
+        <li>Dyspnée, cyanose.</li>
+        <li><strong>Turgescence jugulaire</strong> (pression veineuse centrale élevée).</li>
+        <li>Signes de cœur droit (foie cardiaque, OMI).</li>
+        <li>Tamponnade : pouls paradoxal, bruits du cœur assourdis (triade de Beck).</li>
+        <li>PNO compressif : abolition murmure vésiculaire d'un côté, déviation trachéale.</li>
+      </ul>
+      <h4>Traitement = LEVER L'OBSTACLE</h4>
+      <ul>
+        <li><strong>EP grave</strong> : thrombolyse, anticoagulation, parfois embolectomie.</li>
+        <li><strong>Tamponnade</strong> : drainage péricardique (péricardiocentèse écho-guidée) en urgence.</li>
+        <li><strong>PNO compressif</strong> : exsufflation à l'aiguille (2e EIC ligne médio-claviculaire) puis drainage thoracique.</li>
+      </ul>
+      <div class="callout crit">Le remplissage et les drogues ne servent à rien tant que l'obstacle n'est pas levé. <strong>Geste salvateur immédiat.</strong></div>
+    </div>
+
+  </div>
+
+  <div class="card">
+    <h3>Prise en charge standardisée — séquence AMOPP</h3>
+    <p>Séquence opérationnelle à mémoriser : <strong>Alerter, Monitorer, Oxygéner, Perfuser, Prélever</strong>.</p>
+    <div class="grid cols-3">
+      <div>
+        <h4>1. ALERTER</h4>
+        <ul>
+          <li>Médecin du service</li>
+          <li>Réanimateur</li>
+          <li>Équipe d'urgence intra-hospitalière</li>
+          <li>Rester avec le patient</li>
+        </ul>
+      </div>
+      <div>
+        <h4>2. MONITORER</h4>
+        <ul>
+          <li>Scope (FC, ECG continu)</li>
+          <li>TA (manuelle puis automatique puis invasive)</li>
+          <li>SpO₂</li>
+          <li>Température</li>
+          <li>Diurèse (sonde urinaire si nécessaire)</li>
+        </ul>
+      </div>
+      <div>
+        <h4>3. OXYGÉNER</h4>
+        <ul>
+          <li>O₂ haute concentration MHC 15 L/min</li>
+          <li>Objectif <strong>SpO₂ &gt; 94%</strong></li>
+          <li>VNI/intubation selon évolution</li>
+        </ul>
+      </div>
+      <div>
+        <h4>4. PERFUSER</h4>
+        <ul>
+          <li><strong>2 VVP gros calibre (≥ 18 G)</strong></li>
+          <li>Voie intra-osseuse si VVP échec</li>
+          <li>Anticipation de la VVC</li>
+        </ul>
+      </div>
+      <div>
+        <h4>5. PRÉLEVER</h4>
+        <ul>
+          <li>GDS, lactates</li>
+          <li>NFS, coagulation</li>
+          <li>Ionogramme, créatinine</li>
+          <li>CRP, PCT</li>
+          <li>Groupage / RAI si transfusion possible</li>
+          <li>Hémocultures × 2 si fièvre</li>
+        </ul>
+      </div>
+      <div>
+        <h4>REMPLISSAGE</h4>
+        <ul>
+          <li>Cristalloïde : <strong>NaCl 0,9% ou Ringer Lactate</strong> (préféré en réa)</li>
+          <li>500 mL en 15-30 min puis réévaluer</li>
+          <li>Objectif : 30 mL/kg en sepsis</li>
+          <li>Surveiller : <strong>œdème pulmonaire</strong>, crépitants, désaturation, dyspnée → STOP</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="callout crit" style="margin-top:14px"><strong>Catécholamines :</strong> noradrénaline = référence du choc vasoplégique (septique). Dobutamine si composante cardiogénique. <strong>Jamais de bolus de catécholamines au pousse-seringue</strong> — toujours en débit continu titré sur la PAM (cible ≥ 65 mmHg).</div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Rôle infirmier — savoir reconnaître et agir</h3>
+      <h4>Savoir reconnaître rapidement</h4>
+      <ul>
+        <li>Hypotension, marbrures, polypnée.</li>
+        <li>Oligurie, troubles neurologiques (confusion, agitation).</li>
+        <li>TRC &gt; 3 sec, extrémités froides.</li>
+        <li>Lactates qui montent.</li>
+      </ul>
+      <h4>Savoir faire</h4>
+      <ul>
+        <li>Oxygénothérapie immédiate.</li>
+        <li>Pose VVP × 2 gros calibre + prélèvements.</li>
+        <li>Surveillance rapprochée (PA toutes les 5-10 min).</li>
+        <li>Préparation du matériel d'urgence (BAVU, chariot d'urgence, défibrillateur, intubation).</li>
+        <li>Hiérarchisation des soins, anticipation.</li>
+        <li>Transmissions claires (SBAR).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Mémo express — tableau récapitulatif</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Type</th><th>Mécanisme</th><th>Traitement clé</th></tr></thead>
+          <tbody>
+            <tr><td>Septique (vasoplégique)</td><td>Infection → vasodilatation</td><td>ATB + Noradrénaline + remplissage + foyer</td></tr>
+            <tr><td>Anaphylactique</td><td>Réaction allergique sévère</td><td><strong>Adrénaline IM</strong></td></tr>
+            <tr><td>Cardiogénique</td><td>Défaillance de la pompe cardiaque</td><td>Inotropes (dobu) + revascularisation</td></tr>
+            <tr><td>Hypovolémique</td><td>Perte de volume circulant</td><td>Remplissage + traitement cause</td></tr>
+            <tr><td>Hémorragique</td><td>Perte sanguine</td><td>Arrêt saignement + transfusion 1:1:1</td></tr>
+            <tr><td>Obstructif</td><td>Obstacle mécanique</td><td>Lever l'obstacle (drainage, thrombolyse, exsufflation)</td></tr>
+            <tr><td>Spinal</td><td>Sympatholyse médullaire</td><td>Noradré + atropine, PAM ≥ 85</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Points clés à retenir</h3>
+      <ul>
+        <li>✔ Un patient peut être en choc <strong>avec une TA normale</strong> au début.</li>
+        <li>✔ La <strong>polypnée</strong> est un signe précoce souvent ignoré (compense l'acidose et l'hypoxie).</li>
+        <li>✔ Toujours rechercher et traiter la <strong>cause</strong>, pas seulement les chiffres.</li>
+        <li>✔ <strong>Temps = organe</strong> : prise en charge rapide et coordonnée.</li>
+        <li>✔ Monitorage strict : <strong>diurèse, TA, lactates, état neurologique</strong>.</li>
+        <li>✔ Marbrures et lactates sont les <strong>marqueurs cliniques et biologiques</strong> les plus parlants.</li>
+        <li>✔ La PAM (≥ 65 mmHg) est plus utile que la PAS en réa.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Score de marbrures (Mottling score)</h3>
+      <p>Score de 0 à 5, évalué au <strong>genou</strong>. Excellent marqueur pronostique en réa.</p>
+      <ul>
+        <li><strong>0</strong> : aucune marbrure</li>
+        <li><strong>1</strong> : limitée à la rotule (pièce de 2€)</li>
+        <li><strong>2</strong> : limitée à la partie sup du genou</li>
+        <li><strong>3</strong> : atteinte de la mi-cuisse</li>
+        <li><strong>4</strong> : étendue à l'aine</li>
+        <li><strong>5</strong> : extension au-delà de l'aine</li>
+      </ul>
+      <p>Score ≥ 4 à H6 d'admission en réa = mortalité &gt; 80%.</p>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"constantes",
+  num:"08",
+  title:"Constantes & surveillance",
+  eyebrow:"Chapitre 08 · normes, alertes, calculs",
+  lede:"Les chiffres à connaître par cœur : PAM, diurèse, FR, SpO₂, Glasgow… et les seuils qui doivent déclencher un appel médical.",
+  html:`
+  <div class="card">
+    <h3>Constantes vitales adulte — normes</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Paramètre</th><th>Norme</th><th>Seuil d'alerte</th></tr></thead>
+      <tbody>
+        <tr><td>Pression artérielle (PA)</td><td>120/80 mmHg env.</td><td>PAS &lt; 90 ou &gt; 180 ; PAD &lt; 50 ou &gt; 110</td></tr>
+        <tr><td>PAM (pression artérielle moyenne)</td><td>70-100 mmHg</td><td><strong>&lt; 65 mmHg</strong> = hypoperfusion d'organe</td></tr>
+        <tr><td>Fréquence cardiaque (FC)</td><td>60-100/min</td><td>&lt; 40 (bradycardie sévère), &gt; 120 (tachycardie sévère)</td></tr>
+        <tr><td>Fréquence respiratoire (FR)</td><td>12-20/min</td><td>&lt; 8 ou <strong>&gt; 30</strong> (épuisement)</td></tr>
+        <tr><td>SpO₂</td><td>≥ 95% (88-92% si BPCO)</td><td>&lt; 90% (sévère &lt; 85%)</td></tr>
+        <tr><td>Température</td><td>36,5-37,5 °C</td><td>&lt; 36 (hypothermie), &gt; 38,5 (fièvre)</td></tr>
+        <tr><td>Glycémie capillaire</td><td>0,8-1,4 g/L à jeun</td><td>&lt; 0,7 ou &gt; 2,5 g/L</td></tr>
+        <tr><td>Diurèse horaire</td><td><strong>≥ 0,5 mL/kg/h</strong></td><td>&lt; 0,5 mL/kg/h sur plus de 2h = oligurie</td></tr>
+        <tr><td>ETCO₂ (capnographie)</td><td>35-45 mmHg</td><td>Reflet de la ventilation + débit cardiaque</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>PAM — Pression Artérielle Moyenne</h3>
+      <p>Pression "moyenne" qui assure la perfusion des organes. Plus pertinente que la PAS en réa.</p>
+      <p class="mono">PAM = PAD + (PAS − PAD) / 3 ≈ (PAS + 2 × PAD) / 3</p>
+      <p>Exemple : PA 120/80 → PAM = 80 + 40/3 ≈ <strong>93 mmHg</strong>.</p>
+      <div class="callout info"><strong>Objectif universel en réa :</strong> PAM ≥ 65 mmHg. Au-dessous : noradrénaline IV en VVC.</div>
+    </div>
+
+    <div class="card">
+      <h3>Score de Glasgow (GCS)</h3>
+      <p>Évaluation neurologique standardisée. Sur 15. <strong>Coma = GCS ≤ 8 → intubation.</strong></p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Y (sur 4)</th><th>V (sur 5)</th><th>M (sur 6)</th></tr></thead>
+        <tbody>
+          <tr><td>4 — Spontanée<br>3 — Au bruit<br>2 — À la douleur<br>1 — Aucune</td>
+          <td>5 — Orientée<br>4 — Confuse<br>3 — Inappropriée<br>2 — Incompréhensible<br>1 — Aucune</td>
+          <td>6 — Aux ordres<br>5 — Orientée à la douleur<br>4 — Évitement<br>3 — Flexion stéréotypée (décortication)<br>2 — Extension (décérébration)<br>1 — Aucune</td></tr>
+        </tbody>
+      </table>
+      </div>
+      <p class="mono">GCS = Y + V + M</p>
+      <p>Toujours noter le détail (ex. GCS 11 = Y3 V3 M5) et l'évolution.</p>
+    </div>
+
+    <div class="card">
+      <h3>qSOFA (sepsis aux urgences)</h3>
+      <p>Outil rapide de dépistage du sepsis hors réa. 1 point pour chaque item :</p>
+      <ul>
+        <li><strong>FR ≥ 22/min</strong></li>
+        <li><strong>Glasgow &lt; 15</strong> (altération de la conscience)</li>
+        <li><strong>PAS ≤ 100 mmHg</strong></li>
+      </ul>
+      <p>Score ≥ 2 → forte suspicion de sepsis → bilan + lactates + transfert si besoin.</p>
+    </div>
+
+    <div class="card">
+      <h3>NEWS-2</h3>
+      <p>Score d'alerte précoce hospitalier : FR, SpO₂, O₂ sup, PAS, FC, conscience, T°. Score global qui hiérarchise les réévaluations et déclenche l'appel à l'équipe mobile / réa.</p>
+    </div>
+
+    <div class="card">
+      <h3>Échelles de douleur</h3>
+      <ul>
+        <li><strong>EVA</strong> (Échelle Visuelle Analogique) : règle 0-10, patient communicant.</li>
+        <li><strong>EN</strong> (Échelle Numérique) : "de 0 à 10, votre douleur ?"</li>
+        <li><strong>EVS</strong> (Échelle Verbale Simple) : absente / faible / modérée / intense / extrême.</li>
+        <li><strong>Algoplus</strong> : sujet âgé non communicant (visage, regard, plaintes, corps, comportements).</li>
+        <li><strong>BPS / CPOT</strong> : patient de réa intubé / sédaté.</li>
+      </ul>
+      <div class="callout good"><strong>Objectif :</strong> EN ≤ 3 au repos, ≤ 5 à la mobilisation.</div>
+    </div>
+
+    <div class="card">
+      <h3>Échelles de sédation</h3>
+      <ul>
+        <li><strong>RASS</strong> (Richmond Agitation-Sedation Scale) de −5 (non réveillable) à +4 (combatif). Cible souvent <strong>0 à −2</strong> en réa.</li>
+        <li><strong>Ramsay</strong> de 1 (anxieux) à 6 (aucune réponse).</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"calculs",
+  num:"09",
+  title:"Calculs de doses & débits",
+  eyebrow:"Chapitre 09 · règle de trois, IVSE, gouttes/min",
+  lede:"La maîtrise des calculs est non-négociable. Méthode systématique pour ne jamais se tromper.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Règle de trois — la base</h3>
+      <p>Si <em>A</em> contient <em>B</em>, alors <em>X</em> contient <em>?</em></p>
+      <p class="mono">? = (B × X) / A</p>
+      <h4>Exemple</h4>
+      <p>On dispose d'ampoules de <strong>500 mg/10 mL</strong>. Prescription : <strong>250 mg</strong>. Combien de mL ?</p>
+      <p class="mono">? = (10 × 250) / 500 = <strong>5 mL</strong></p>
+    </div>
+
+    <div class="card">
+      <h3>Débit d'une perfusion en gouttes/min</h3>
+      <p class="mono">Débit (gtt/min) = Volume (mL) × 20 / Durée (min)</p>
+      <p>Approximation : <strong>1 mL = 20 gouttes</strong> (perfuseur standard adulte).</p>
+      <h4>Exemple</h4>
+      <p>500 mL à passer en 4h.</p>
+      <p class="mono">= 500 × 20 / 240 = <strong>≈ 42 gouttes/min</strong></p>
+      <p>Astuce mentale : <strong>mL/h ÷ 3 ≈ gtt/min</strong>. (125 mL/h → ≈ 42 gtt/min)</p>
+    </div>
+
+    <div class="card">
+      <h3>Débit IVSE — mL/h depuis µg/kg/min</h3>
+      <p>Cas classique : noradré 8 mg dans 48 mL (= 160 µg/mL). Prescription : 0,2 µg/kg/min chez un patient de 70 kg.</p>
+      <ol>
+        <li>Dose totale par minute : 0,2 × 70 = <strong>14 µg/min</strong></li>
+        <li>Dose par heure : 14 × 60 = <strong>840 µg/h</strong></li>
+        <li>Volume à passer : 840 / 160 = <strong>5,25 mL/h</strong></li>
+      </ol>
+      <p class="mono">Débit (mL/h) = (Dose µg/kg/min × poids × 60) / Concentration µg/mL</p>
+    </div>
+
+    <div class="card">
+      <h3>Conversions utiles</h3>
+      <ul>
+        <li>1 g = 1000 mg = 1 000 000 µg</li>
+        <li>1 mg = 1000 µg</li>
+        <li>1% = 10 mg/mL (ex. lidocaïne 1% = 10 mg/mL)</li>
+        <li>NaCl 0,9% = 9 g/L = 9 mg/mL</li>
+        <li>G5% = 50 g de glucose / L</li>
+        <li>1 mL = 20 gouttes (perfuseur adulte) ; 60 gouttes (microperfuseur pédiatrique)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Posologie pédiatrique en mg/kg</h3>
+      <p>Toujours en <strong>poids réel</strong> (sauf indications spécifiques). Exemple : paracétamol 15 mg/kg toutes les 6h.</p>
+      <ul>
+        <li>Enfant de 12 kg : 15 × 12 = 180 mg/prise.</li>
+        <li>Dose max/24h = 60 mg/kg/j.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Dilution & concentration finale</h3>
+      <p>Diluer une amp de 1 g de cefazoline dans 100 mL → <strong>10 mg/mL</strong>.</p>
+      <p>Diluer une amp de 250 mg de dobu dans 250 mL → <strong>1 mg/mL = 1000 µg/mL</strong>.</p>
+      <p>Toujours vérifier la concentration <strong>finale</strong> et étiqueter la seringue.</p>
+    </div>
+
+  </div>
+
+  <div class="callout warn"><span class="label">Double check</span> Pour les médicaments à risque (insuline, KCl, héparine, anticancéreux, catécholamines) : <strong>vérification à deux IDE</strong> du calcul, de la concentration et du débit.</div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"medocs",
+  num:"10",
+  title:"Médicaments d'urgence",
+  eyebrow:"Chapitre 10 · sédation, antalgie, anticoag, insuline",
+  lede:"Les classes incontournables, leurs particularités d'administration et de surveillance.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="drug">
+      <h5>Insuline rapide (Actrapid, Humalog, Novorapid)</h5>
+      <div class="meta">Hypoglycémiant · SC ou IV</div>
+      <ul>
+        <li>Délai d'action : 15-30 min SC, immédiat IV. Durée 4-6h.</li>
+        <li>IVSE en réa : 50 UI dans 50 mL NaCl = <strong>1 UI/mL</strong>.</li>
+        <li>Schéma "basal-bolus" en ville : analogue lent (Lantus, Toujeo, Tresiba) + rapide aux repas.</li>
+        <li>HGT systématique avant injection, adapter selon protocole.</li>
+        <li>Risque : <strong>hypoglycémie</strong>. Toujours avoir G30% à proximité.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Héparine (HNF et HBPM)</h5>
+      <div class="meta">Anticoagulant · IV / SC</div>
+      <ul>
+        <li><strong>HNF</strong> (héparine non fractionnée, Calciparine, héparine sodique) : IV continue, surveillance <strong>TCA</strong> (objectif 2-3× témoin) ou anti-Xa. Demi-vie courte → antidote rapide.</li>
+        <li><strong>HBPM</strong> (enoxaparine/Lovenox, tinzaparine/Innohep) : SC, dose préventive (0,4 mL/j) ou curative (100 UI/kg × 2/j). Surveillance <strong>anti-Xa</strong>, plaquettes 2×/sem (TIH).</li>
+        <li>Antidote : <strong>sulfate de protamine</strong>.</li>
+        <li>Surveillance : NFS-plaquettes (TIH), signes hémorragiques.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>AOD — Anticoagulants oraux directs</h5>
+      <div class="meta">Per os</div>
+      <ul>
+        <li>Apixaban (Eliquis), Rivaroxaban (Xarelto), Dabigatran (Pradaxa).</li>
+        <li>Pas de surveillance biologique de routine.</li>
+        <li>Antidotes : idarucizumab (Praxbind) pour dabigatran ; andexanet alfa pour Xa.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>AVK (Warfarine, Previscan, Coumadine)</h5>
+      <div class="meta">Per os</div>
+      <ul>
+        <li>Surveillance <strong>INR</strong> — cible le plus souvent 2-3 (TVP, EP, FA) ; 2,5-3,5 (valves mécaniques).</li>
+        <li>Antidote : <strong>vitamine K</strong> (lente) + <strong>PPSB</strong> (concentré de complexe prothrombinique) en urgence.</li>
+        <li>Nombreuses interactions médicamenteuses et alimentaires (vitamine K).</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Morphine</h5>
+      <div class="meta">Antalgique palier 3 · SC, IV, PO, PCA</div>
+      <ul>
+        <li><strong>Titration IV</strong> : 2-3 mg toutes les 5 min jusqu'à EN ≤ 3.</li>
+        <li>SC en hospitalisation : 5-10 mg toutes les 4h.</li>
+        <li>PCA : bolus 1 mg, période réfractaire 7-10 min.</li>
+        <li>Surveillance : <strong>FR ≥ 10/min</strong>, sédation (Rudkin/EDS), constipation, NV, RAU, prurit.</li>
+        <li>Antidote : <strong>naloxone (Narcan)</strong> 0,04-0,4 mg IV titrée.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Paracétamol & néfopam (paliers 1)</h5>
+      <ul>
+        <li><strong>Paracétamol</strong> : 1 g × 4/j max chez l'adulte de plus de 50 kg (15 mg/kg si moins). IV en 15 min. Toxicité hépatique &gt; 4 g/j ou en cas d'OH chronique / insuffisance hépatique.</li>
+        <li><strong>Néfopam (Acupan)</strong> : 20 mg dans 100 mL en 30 min IV, 4-6×/j max 120 mg/j. Pas de dépression respi. ES : sueurs, tachycardie. CI : épilepsie, glaucome, adénome prostatique.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Sédation — Midazolam / Propofol</h5>
+      <div class="meta">Hypnotiques · IVSE</div>
+      <ul>
+        <li><strong>Midazolam (Hypnovel)</strong> : benzodiazépine. 0,05-0,2 mg/kg/h IVSE. Demi-vie longue chez l'insuffisant rénal/hépatique. Antidote : <strong>flumazénil (Anexate)</strong>.</li>
+        <li><strong>Propofol (Diprivan)</strong> : hypnotique non-BZD. Émulsion lipidique. Action rapide, réveil rapide. ES : hypotension, bradycardie, douleur à l'injection, hypertriglycéridémie. Pas d'antidote.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Curares</h5>
+      <div class="meta">Bloqueurs neuromusculaires · IV (intubation, chir, SDRA)</div>
+      <ul>
+        <li><strong>Cisatracurium</strong> (Nimbex) : indépendant du foie/rein, choix réa.</li>
+        <li><strong>Rocuronium</strong> (Esmeron) : action rapide, intubation en séquence rapide.</li>
+        <li><strong>Succinylcholine (Célocurine)</strong> : dépolarisant, intubation en séquence rapide. CI : hyperkaliémie, brûlés &gt; 48h, paraplégie chronique.</li>
+        <li>Antidote du roc/véc : <strong>sugammadex (Bridion)</strong>.</li>
+        <li>Patient curarisé = patient <strong>obligatoirement</strong> intubé/ventilé et sédaté/analgésié.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Anxiolytiques / Antiépileptiques d'urgence</h5>
+      <ul>
+        <li><strong>Diazépam (Valium)</strong>, <strong>Clonazépam (Rivotril)</strong>, <strong>Midazolam</strong> : crise convulsive.</li>
+        <li>État de mal : Valium 10 mg IVD ou Rivotril 1 mg IV à répéter, puis fosphénytoïne / valproate / lévétiracétam (Keppra).</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Naloxone (Narcan)</h5>
+      <div class="meta">Antagoniste des opioïdes</div>
+      <ul>
+        <li>Overdose / surdosage morphinique : 0,04-0,4 mg IV, à répéter toutes les 2-3 min.</li>
+        <li>Demi-vie courte → risque de re-narcose, surveillance prolongée.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Atropine</h5>
+      <ul>
+        <li>Bradycardie symptomatique : <strong>0,5 mg IVD</strong>, à répéter (max 3 mg).</li>
+        <li>Antidote des organophosphorés / pesticides.</li>
+        <li>ES : tachycardie, sécheresse buccale, mydriase, RAU.</li>
+      </ul>
+    </div>
+
+    <div class="drug">
+      <h5>Amiodarone (Cordarone)</h5>
+      <ul>
+        <li>Antiarythmique. ACR FV/TV : 300 mg IVD.</li>
+        <li>FA rapide / TV : charge 300 mg IV en 30 min puis 900 mg/24h.</li>
+        <li>Veinotoxique : <strong>VVC de préférence</strong> en perfusion prolongée.</li>
+        <li>Effets à long terme : thyroïde, foie, poumon, peau (photosensibilisation).</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"ecg",
+  num:"11",
+  title:"ECG & rythmes",
+  eyebrow:"Chapitre 11 · les tracés à reconnaître",
+  lede:"FA, TV, FV, asystolie, BAV, SCA : savoir reconnaître l'urgence sur un scope.",
+  html:`
+  <div class="card">
+    <h3>Bases de lecture</h3>
+    <ul>
+      <li><strong>Vitesse</strong> : 25 mm/s → 1 grand carreau = 5 mm = 0,20 s ; 1 petit = 1 mm = 0,04 s.</li>
+      <li><strong>FC</strong> : 300 / nombre de grands carreaux entre 2 QRS (méthode rapide), ou 1500 / petits carreaux.</li>
+      <li><strong>Rythme sinusal</strong> : onde P avant chaque QRS, P positive en DII, PR normal (120-200 ms), QRS fins.</li>
+      <li><strong>QRS</strong> : &lt; 120 ms = fin ; ≥ 120 ms = large.</li>
+      <li><strong>QT</strong> : doit rester &lt; moitié RR. QT long → torsade.</li>
+    </ul>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Fibrillation auriculaire (FA)</h3>
+      <p><strong>Pas d'onde P</strong>, ligne de base ondulée, QRS fins <strong>irréguliers</strong>. Fréquence variable.</p>
+      <ul>
+        <li>Risque embolique (AVC) → anticoagulation selon CHA₂DS₂-VASc.</li>
+        <li>Ralentissement : bêta-bloquants, digoxine, amiodarone.</li>
+        <li>Réduction : cardioversion électrique ou pharmaco (amiodarone).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Flutter auriculaire</h3>
+      <p>Activité auriculaire régulière en "dents de scie" (onde F), souvent 300/min, avec conduction ventriculaire 2:1 ou 4:1.</p>
+    </div>
+
+    <div class="card">
+      <h3>Tachycardie ventriculaire (TV)</h3>
+      <div class="row-tags"><span class="pill crit">URGENCE</span></div>
+      <p>QRS <strong>larges</strong>, réguliers, fréquence 150-250. Origine ventriculaire.</p>
+      <ul>
+        <li><strong>Avec pouls + stabilité</strong> : amiodarone IV, avis cardio.</li>
+        <li><strong>Avec pouls + instabilité (choc, OAP, douleur)</strong> : cardioversion synchronisée.</li>
+        <li><strong>Sans pouls</strong> = ACR rythme choquable : <strong>défibrillation</strong> + RCP.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Torsade de pointes</h3>
+      <p>TV polymorphe avec axe qui tourne autour de la ligne de base. Sur QT long. Risque de FV.</p>
+      <ul>
+        <li><strong>Sulfate de magnésium 2 g IV</strong>.</li>
+        <li>Correction kaliémie, retrait des médicaments allongeant le QT (amiodarone, certains ATB, antipsychotiques…).</li>
+        <li>Isoprénaline / pacing si bradycardie associée.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Fibrillation ventriculaire (FV)</h3>
+      <div class="row-tags"><span class="pill crit">ARRÊT</span></div>
+      <p>Activité électrique <strong>chaotique</strong>, désorganisée, sans QRS identifiable. Pas de contraction efficace = pas de débit cardiaque.</p>
+      <p><strong>= ACR avec rythme choquable.</strong> Défibrillation immédiate + RCP.</p>
+    </div>
+
+    <div class="card">
+      <h3>Asystolie / AESP</h3>
+      <p><strong>Asystolie</strong> : ligne plate (vérifier dérivations, gain, électrodes).</p>
+      <p><strong>AESP</strong> : activité électrique organisée mais <strong>absence de pouls</strong>. Souvent rythme lent.</p>
+      <p>Rythmes <strong>NON choquables</strong>. RCP + adrénaline 1 mg/3-5 min + recherche cause (4H/4T).</p>
+    </div>
+
+    <div class="card">
+      <h3>Blocs auriculo-ventriculaires (BAV)</h3>
+      <ul>
+        <li><strong>BAV 1</strong> : PR allongé (&gt; 200 ms), bénin.</li>
+        <li><strong>BAV 2 Mobitz I</strong> : PR qui s'allonge progressivement puis P bloquée (Wenckebach).</li>
+        <li><strong>BAV 2 Mobitz II</strong> : P intermittentes bloquées sans allongement, risque évolutif.</li>
+        <li><strong>BAV 3 (complet)</strong> : dissociation auriculo-ventriculaire totale. <strong>Urgence</strong> : risque syncope, mort subite. Atropine, isoprénaline, pacemaker.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Syndrome coronarien aigu (signes ECG)</h3>
+      <ul>
+        <li><strong>STEMI</strong> : sus-décalage ST ≥ 1 mm (membres) / 2 mm (précordiales) dans 2 dérivations contiguës → reperfusion urgente.</li>
+        <li>Localisation : <strong>antérieur</strong> V1-V4 (IVA), <strong>inférieur</strong> DII-DIII-aVF (CD), <strong>latéral</strong> DI-aVL-V5-V6.</li>
+        <li>Inférieur → faire <strong>V3R-V4R + V7-V9</strong> (VD et postérieur).</li>
+        <li><strong>NSTEMI / angor</strong> : sous-décalage ST, onde T négative, troponines en cinétique.</li>
+        <li><strong>Onde Q</strong> de nécrose : tardive (séquelle).</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"bilans",
+  num:"12",
+  title:"Bilans biologiques & gazométrie",
+  eyebrow:"Chapitre 12 · NFS, iono, coag, GdS",
+  lede:"Lire un bilan rapidement, repérer les anomalies critiques, interpréter une gazométrie.",
+  html:`
+  <div class="card">
+    <h3>Normes biologiques essentielles</h3>
+    <div class="table-wrap">
+    <table>
+      <thead><tr><th>Bilan</th><th>Norme</th><th>À retenir</th></tr></thead>
+      <tbody>
+        <tr><td>Hémoglobine</td><td>H : 13-17 g/dL · F : 12-15</td><td>Transfusion CGR si &lt; 7 (ou 8 si cardiopathie)</td></tr>
+        <tr><td>Hématocrite</td><td>40-50%</td><td>Reflète volémie + Hb</td></tr>
+        <tr><td>Leucocytes</td><td>4-10 G/L</td><td>&gt; 12 (infection) ; &lt; 4 (aplasie)</td></tr>
+        <tr><td>Plaquettes</td><td>150-400 G/L</td><td>&lt; 50 risque hémorragie ; &lt; 20 transfu</td></tr>
+        <tr><td>Na⁺</td><td>135-145 mmol/L</td><td>Corriger lentement (myélinolyse pontine)</td></tr>
+        <tr><td>K⁺</td><td>3,5-5 mmol/L</td><td>&lt; 3 ou &gt; 6 → ECG urgent</td></tr>
+        <tr><td>Ca²⁺ ionisé</td><td>1,15-1,3 mmol/L</td><td>Hypocalcémie en transfusion massive</td></tr>
+        <tr><td>Créatinine</td><td>60-110 µmol/L</td><td>DFG &lt; 60 = IR ; &lt; 30 = IRC sévère</td></tr>
+        <tr><td>Urée</td><td>2,5-7,5 mmol/L</td><td>Élevée → IR / déshydratation / hémorragie digestive</td></tr>
+        <tr><td>TP</td><td>70-100%</td><td>&lt; 40% = trouble coag franc</td></tr>
+        <tr><td>INR</td><td>&lt; 1,2 (sans AVK)</td><td>Cible AVK 2-3 selon indication</td></tr>
+        <tr><td>TCA</td><td>1-1,2 × témoin</td><td>Surveillance HNF (2-3×)</td></tr>
+        <tr><td>Fibrinogène</td><td>2-4 g/L</td><td>&lt; 1,5 = saignement, CIVD</td></tr>
+        <tr><td>D-dimères</td><td>&lt; 500 ng/mL</td><td>VPN élevée pour EP/TVP (à âge ajusté)</td></tr>
+        <tr><td>Troponines</td><td>&lt; 14 ng/L (Tnhs)</td><td>Cinétique sur 3-6h</td></tr>
+        <tr><td>BNP / NT-proBNP</td><td>&lt; 100 / &lt; 300 pg/mL</td><td>Insuffisance cardiaque</td></tr>
+        <tr><td>Lactates</td><td>&lt; 2 mmol/L</td><td>&gt; 4 = hypoperfusion grave</td></tr>
+        <tr><td>CRP</td><td>&lt; 5 mg/L</td><td>Inflammation/infection</td></tr>
+        <tr><td>Procalcitonine</td><td>&lt; 0,5 µg/L</td><td>Spécifique infection bactérienne</td></tr>
+      </tbody>
+    </table>
+    </div>
+  </div>
+
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Gazométrie artérielle</h3>
+      <p>Prélevée en artère radiale (Allen test) ou sur KTA. Tube hépariné, sans bulle, à analyser dans les 15 min.</p>
+      <div class="table-wrap">
+      <table>
+        <thead><tr><th>Paramètre</th><th>Norme</th></tr></thead>
+        <tbody>
+          <tr><td>pH</td><td>7,35-7,45</td></tr>
+          <tr><td>PaCO₂</td><td>35-45 mmHg</td></tr>
+          <tr><td>PaO₂</td><td>80-100 mmHg (en AA)</td></tr>
+          <tr><td>HCO₃⁻ (bicar)</td><td>22-26 mmol/L</td></tr>
+          <tr><td>SaO₂</td><td>&gt; 95%</td></tr>
+          <tr><td>Lactates</td><td>&lt; 2 mmol/L</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <h4>Interprétation pas à pas</h4>
+      <ol>
+        <li><strong>pH</strong> : acidose (&lt;7,35) ou alcalose (&gt;7,45) ?</li>
+        <li><strong>PaCO₂</strong> : si évolue dans le sens du pH (acidose + PaCO₂ haute) → origine <strong>respiratoire</strong>.</li>
+        <li><strong>HCO₃⁻</strong> : si évolue dans le sens du pH (acidose + bicar bas) → origine <strong>métabolique</strong>.</li>
+        <li>Compensation ? (l'autre paramètre va dans le sens inverse pour ramener le pH à la norme).</li>
+      </ol>
+
+      <h4>Tableaux classiques</h4>
+      <ul>
+        <li><strong>Acidose respi</strong> : pH ↓, PaCO₂ ↑ → BPCO décompensée, hypoventilation.</li>
+        <li><strong>Acidose métabo</strong> : pH ↓, HCO₃⁻ ↓ → choc, acidocétose, IR, lactique.</li>
+        <li><strong>Alcalose respi</strong> : pH ↑, PaCO₂ ↓ → hyperventilation (anxiété, EP, sepsis débutant).</li>
+        <li><strong>Alcalose métabo</strong> : pH ↑, HCO₃⁻ ↑ → vomissements, diurétiques.</li>
+      </ul>
+      <p><strong>Trou anionique</strong> (Na - (Cl + HCO₃) ≈ 12) : élevé dans acidose lactique, acidocétose, IR, intox méthanol/éthylène glycol.</p>
+    </div>
+
+    <div class="card">
+      <h3>Ionogramme — dyskaliémies</h3>
+      <h4>Hyperkaliémie (K&gt;5,5)</h4>
+      <ul>
+        <li>ECG : ondes T pointues → QRS larges → onde sinusoïdale → ACR.</li>
+        <li>Traitement urgence vitale : <strong>gluconate de calcium</strong> 1 g IV (protège le cœur), <strong>insuline + G30%</strong> (pousse le K en intracellulaire), <strong>salbutamol</strong> aérosol, <strong>bicarbonate</strong>, <strong>diurétiques</strong>, dialyse en dernier recours.</li>
+      </ul>
+      <h4>Hypokaliémie (K&lt;3,5)</h4>
+      <ul>
+        <li>ECG : T plates, U, sous-décalage ST, TdR.</li>
+        <li>Cause fréquente : diurétiques, vomissements/diarrhée, hyperaldostéronisme.</li>
+        <li>Correction lente IV (max 1 g/h VVP) + apport per os.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Dysnatrémies</h3>
+      <h4>Hyponatrémie</h4>
+      <ul>
+        <li>Risque convulsions, œdème cérébral.</li>
+        <li>Correction <strong>très lente</strong> (&lt; 10 mmol/L/24h) sous peine de myélinolyse centro-pontine.</li>
+        <li>Si symptomatique sévère : NaCl 3% en bolus.</li>
+      </ul>
+      <h4>Hypernatrémie</h4>
+      <ul>
+        <li>Souvent déshydratation. Apport d'eau libre (G5%) lentement.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Bilan hépatique</h3>
+      <ul>
+        <li>ASAT/ALAT (cytolyse), GGT/PAL (cholestase), bilirubine (totale, conjuguée).</li>
+        <li>Insuffisance hépato-cellulaire : <strong>TP/Facteur V bas</strong>, hypoalbuminémie, hypoglycémie.</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"bloc",
+  num:"13",
+  title:"Bloc opératoire & SSPI",
+  eyebrow:"Chapitre 13 · anesthésie, check-list, sortie de salle",
+  lede:"Types d'anesthésie, organisation du bloc, surveillance post-op, score d'Aldrete, NVPO.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Types d'anesthésie</h3>
+      <h4>Anesthésie générale (AG)</h4>
+      <ul>
+        <li>Triade : <strong>hypnotique + analgésique + curare</strong> (parfois).</li>
+        <li>Induction : pré-oxygénation, hypnotique (propofol/étomidate), morphinique (sufenta), curare si intubation.</li>
+        <li>Entretien : gaz halogénés (sévoflurane, desflurane) ou TIVA (propofol IV).</li>
+        <li>Surveillance : capno, SpO₂, scope, BIS, curaromètre, T°.</li>
+      </ul>
+      <h4>Rachianesthésie</h4>
+      <ul>
+        <li>Injection unique d'anesthésique local <strong>dans le LCR</strong> (L3-L4 ou L4-L5).</li>
+        <li>Bloc moteur + sensitif rapide, 2-4h. Chir membres inf, urologie, obstétrique.</li>
+        <li>Risque : <strong>hypotension</strong> (sympatholyse) → éphédrine prête, remplissage.</li>
+        <li>CI : refus, infection au site, coagulopathie, hypertension intracrânienne, instabilité HD majeure.</li>
+      </ul>
+      <h4>Péridurale</h4>
+      <ul>
+        <li>Cathéter dans l'espace <strong>péridural</strong>, perfusion continue.</li>
+        <li>Analgésie obstétricale, post-op thoracique/abdominale.</li>
+      </ul>
+      <h4>Anesthésie locorégionale (ALR)</h4>
+      <ul>
+        <li>Bloc plexique ou tronculaire écho-guidé (interscalénique, axillaire, fémoral, sciatique).</li>
+        <li>Évite les risques de l'AG, post-op moins douloureux.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Check-list "Sécurité du patient au bloc" (HAS)</h3>
+      <p>Trois temps obligatoires, à voix haute, équipe entière.</p>
+      <ul>
+        <li><strong>Avant induction</strong> : identité, intervention prévue, côté à opérer, allergies, jeûne, antibioprophylaxie, capital veineux, dossier complet.</li>
+        <li><strong>Avant incision (Time-Out)</strong> : confirmation de tous, antibioprophylaxie effective, matériel disponible.</li>
+        <li><strong>Avant sortie de salle</strong> : compte des compresses, comptage des aiguilles, dispositifs laissés, étiquetage prélèvements, transmission.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>SSPI — Salle de Surveillance Post-Interventionnelle</h3>
+      <p>Étape <strong>obligatoire</strong> après toute anesthésie. Surveillance jusqu'à conditions de sortie remplies.</p>
+      <h4>Surveillance</h4>
+      <ul>
+        <li>Constantes en continu : PA, FC, SpO₂, FR, T°, scope, capno si intubé.</li>
+        <li>Conscience, douleur, NVPO, frissons.</li>
+        <li>Pansement, drainage, diurèse, saignement.</li>
+        <li>Reprise de la motricité (rachi/péridurale).</li>
+      </ul>
+
+      <h4>Score d'Aldrete (sortie de SSPI)</h4>
+      <p>Évaluation sur 10. <strong>Sortie autorisée si ≥ 9</strong>.</p>
+      <ul>
+        <li><strong>Activité motrice</strong> : 0-1-2 (les 4 membres / 2 membres / aucun)</li>
+        <li><strong>Respiration</strong> : 0-1-2 (apnée / dyspnée / large et libre)</li>
+        <li><strong>Circulation</strong> : 0-1-2 (PA &gt; 50% / 20-50% / &lt; 20% de la PA pré-op)</li>
+        <li><strong>Conscience</strong> : 0-1-2 (aucune réponse / réveil sur stimuli / éveillé)</li>
+        <li><strong>SpO₂</strong> : 0-1-2 (&lt; 90% sous O₂ / &gt; 90% sous O₂ / &gt; 92% en AA)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>NVPO — Nausées Vomissements Post-Opératoires</h3>
+      <p>Score d'<strong>Apfel</strong> (sur 4) : <em>femme + non-fumeur + ATCD NVPO/mal des transports + morphiniques post-op</em>. 1 pt par item.</p>
+      <ul>
+        <li>0-1 pt : pas de prophylaxie systématique.</li>
+        <li>2 pts : 1-2 antiémétiques (dexaméthasone + ondansétron).</li>
+        <li>3-4 pts : trithérapie + AG avec TIVA propofol.</li>
+      </ul>
+      <p>Curatif : ondansétron 4 mg IV, dropéridol, métoclopramide.</p>
+    </div>
+
+    <div class="card">
+      <h3>Hyperthermie maligne</h3>
+      <div class="row-tags"><span class="pill crit">URGENCE rare</span></div>
+      <p>Réaction génétique à certains anesthésiques (halogénés, succinylcholine). Hypermétabolisme musculaire massif.</p>
+      <ul>
+        <li>Signes : ↑ ETCO₂ inexpliquée, tachycardie, rigidité, hyperthermie, acidose, rhabdomyolyse, hyperkaliémie.</li>
+        <li>Traitement : <strong>dantrolène</strong> 2,5 mg/kg IV à répéter, arrêt halogénés, refroidissement, alcalinisation.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Tenue & circuits au bloc</h3>
+      <ul>
+        <li>Pyjama, calot couvrant les cheveux, masque chirurgical, sabots dédiés.</li>
+        <li>Lavage chirurgical des mains pour l'instrumentiste (chlorhexidine ou bétadine en 2 temps).</li>
+        <li>Brossage des ongles courts (court coupés, sans vernis ni faux ongles).</li>
+        <li>Circuit "propre/sale" (propre, salle, décontamination matériel).</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"hygiene",
+  num:"14",
+  title:"Hygiène & précautions",
+  eyebrow:"Chapitre 14 · standard, contact, gouttelettes, air",
+  lede:"Les précautions standard (toujours) et complémentaires (selon agent et patient).",
+  html:`
+  <div class="card">
+    <h3>Précautions standard (toujours, pour tous)</h3>
+    <ul>
+      <li>Hygiène des mains : <strong>SHA</strong> (solution hydroalcoolique) avant/après chaque soin, lavage simple si mains souillées ou Clostridioides difficile/gale.</li>
+      <li>Gants à usage unique en cas de contact avec sang, liquides bio, peau lésée, muqueuses.</li>
+      <li>Surblouse, masque, lunettes si risque de projection.</li>
+      <li>Pas de bijoux (alliance discrète tolérée selon services), ongles courts, sans vernis.</li>
+      <li>Cheveux attachés, tenue professionnelle propre.</li>
+      <li>Gestion des piquants-tranchants : <strong>boîte OPCT</strong> à proximité, pas de recapuchonnage.</li>
+      <li>Entretien des surfaces, du matériel partagé.</li>
+    </ul>
+  </div>
+
+  <div class="grid cols-3">
+
+    <div class="card">
+      <h3>Précautions Contact (C)</h3>
+      <div class="row-tags"><span class="pill warn">Signalisation rouge</span></div>
+      <ul>
+        <li>BMR/BHRe (SARM, EPC, ERG…), Clostridioides difficile, gale, gastro à rotavirus.</li>
+        <li>Chambre seule.</li>
+        <li>Gants + surblouse à l'entrée.</li>
+        <li>Matériel dédié (stétho, brassard).</li>
+        <li>SHA inefficace sur spores de C. difficile et gale → <strong>lavage simple à l'eau et au savon</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Précautions Gouttelettes (G)</h3>
+      <ul>
+        <li>Grippe, méningocoque, coqueluche, RSV, COVID (selon recos).</li>
+        <li>Chambre seule.</li>
+        <li><strong>Masque chirurgical</strong> à moins d'1 m.</li>
+        <li>Masque chirurgical sur le patient à la sortie de chambre.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Précautions Air (A)</h3>
+      <ul>
+        <li>Tuberculose pulmonaire, varicelle, rougeole.</li>
+        <li>Chambre seule, <strong>porte fermée</strong>, idéalement dépression.</li>
+        <li><strong>FFP2</strong> pour les soignants à l'entrée.</li>
+        <li>Limiter les sorties du patient ; masque chir sur lui si transport.</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <div class="callout info"><strong>Les "5 indications" OMS de l'hygiène des mains :</strong> avant contact patient, avant geste aseptique, après risque d'exposition à un liquide biologique, après contact patient, après contact avec environnement du patient.</div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"drains",
+  num:"15",
+  title:"Drains, sondes & pansements",
+  eyebrow:"Chapitre 15 · Redon, SNG, sonde U, VAC, stomies",
+  lede:"Identifier chaque dispositif, le surveiller, le retirer dans les règles.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Drains chirurgicaux</h3>
+      <h4>Drain de Redon</h4>
+      <ul>
+        <li>Drain aspiratif (bocal sous vide), post-op chir orthopédique, thyroïdienne, mammaire.</li>
+        <li>Surveiller : volume, aspect, perméabilité, vide effectif (bocal "rétracté").</li>
+        <li>Retrait sur prescription quand volume &lt; seuil (souvent &lt; 30-50 mL/24h).</li>
+      </ul>
+      <h4>Drains de Penrose / lame</h4>
+      <ul>
+        <li>Drainage <strong>passif</strong>, par capillarité. Pansement absorbant.</li>
+      </ul>
+      <h4>Drain thoracique</h4>
+      <ul>
+        <li>Système à 3 chambres (recueil, valve hydraulique, contrôle aspiration).</li>
+        <li>Surveillance : oscillations à la respiration, bullage, quantité, aspect.</li>
+        <li><strong>Clamper en urgence</strong> uniquement sur prescription / si déconnexion accidentelle. Pas de remontée du bocal au-dessus du thorax.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Sonde naso-gastrique (SNG)</h3>
+      <ul>
+        <li>Indications : nutrition entérale, aspiration (occlusion, post-op digestif), lavage.</li>
+        <li>Pose : mesure nez-lobe d'oreille-xyphoïde, lubrification, position assise tête fléchie, déglutition.</li>
+        <li><strong>Vérification du bon positionnement</strong> obligatoire avant utilisation :
+          <ul>
+            <li>Radio thoraco-abdominale (gold standard pour la nutrition prolongée),</li>
+            <li>Test du pH du liquide aspiré (&lt; 5,5 = gastrique),</li>
+            <li>Auscultation épigastrique à l'insufflation (sensibilité limitée).</li>
+          </ul>
+        </li>
+        <li>Surveillance : fixation, longueur extériorisée, état du nez, tolérance, résidus gastriques pour la NE.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Sonde urinaire (sonde vésicale)</h3>
+      <ul>
+        <li>Indications : RAU, surveillance diurèse en réa/post-op lourd, irrigation, immobilisation prolongée avec incontinence.</li>
+        <li>Pose <strong>aseptique stricte</strong> (système clos). Risque majeur : <strong>infection urinaire nosocomiale</strong>.</li>
+        <li>Sac de drainage <strong>en déclive</strong>, ne jamais remonter au-dessus de la vessie.</li>
+        <li>Toilette périnéale 1-2 fois/jour, pas d'antiseptique routinier.</li>
+        <li>Indication réévaluée <strong>quotidiennement</strong> : <strong>retirer dès que possible</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Pansement VAC (TPN)</h3>
+      <p>Thérapie par Pression Négative. Mousse + film occlusif + dépression. Favorise la cicatrisation, draine les exsudats.</p>
+      <ul>
+        <li>Indications : plaies chroniques, escarres, déhiscence post-op, peri-greffes.</li>
+        <li>Surveillance : étanchéité, aspect des exsudats, dépression effective, douleur lors du changement.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Stomies digestives</h3>
+      <ul>
+        <li><strong>Iléostomie</strong> : effluents liquides abondants, attention à la déshydratation et hyponatrémie.</li>
+        <li><strong>Colostomie</strong> : effluents plus solides selon la localisation (transverse, sigmoïde).</li>
+        <li>Surveillance : couleur (rosée), œdème, saignement, irritation péristomiale, complications (prolapsus, hernie, sténose).</li>
+        <li>Appareillage : poche vidangeable ou fermée + support, adaptée à la morphologie.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Échelle de Braden (escarres)</h3>
+      <p>6 items : perception sensorielle, humidité, activité, mobilité, nutrition, friction. Score / 23. <strong>Risque si ≤ 18.</strong></p>
+      <p>Prévention : mobilisation/2-3h, matelas adapté, hydratation cutanée, équilibre nutritionnel, surveillance des points d'appui (sacrum, talons, occiput, trochanters).</p>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"atb",
+  num:"16",
+  title:"Antibiotiques essentiels",
+  eyebrow:"Chapitre 16 · classes, surveillance, pièges",
+  lede:"Connaître les grandes familles, leurs modes d'administration et leurs effets indésirables.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Bêta-lactamines</h3>
+      <ul>
+        <li><strong>Pénicillines</strong> : amoxicilline, ampicilline, péni G/V. ± inhibiteur de β-lactamase (amox-clav = Augmentin).</li>
+        <li><strong>Céphalosporines</strong> : C1G (céfazoline), C2G (céfuroxime), <strong>C3G</strong> (ceftriaxone, céfotaxime), C4G (céfépime), C5G (ceftaroline).</li>
+        <li><strong>Carbapénèmes</strong> : imipénème, méropénème — réserve hospitalière, BMR.</li>
+        <li>Allergies : urticaire à anaphylaxie. Allergie croisée péni / C1G non négligeable, &lt; 2% avec C3G.</li>
+        <li><strong>Ceftriaxone</strong> : 1-2 g/j en 1 prise IV/IM/SC. <strong>JAMAIS avec Ringer Lactate</strong> chez le nouveau-né (précipitation Ca-ceftriaxone fatale).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Aminosides</h3>
+      <ul>
+        <li>Gentamicine, amikacine, tobramycine.</li>
+        <li><strong>Dose unique journalière</strong>, perfusion <strong>de 30 min</strong>.</li>
+        <li>Toxicité <strong>rénale</strong> (DFG !) et <strong>cochléo-vestibulaire</strong> (irréversible).</li>
+        <li>Surveillance : pic (1h après) + résiduelle (avant la dose suivante). Durée &lt; 5-7 j en règle.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Glycopeptides</h3>
+      <ul>
+        <li><strong>Vancomycine</strong> : SARM, infections graves Gram +.</li>
+        <li>Perfusion <strong>lente</strong> minimum <strong>60 min</strong> par gramme (Red Man Syndrome si trop rapide → érythème).</li>
+        <li>Surveillance : <strong>taux résiduel</strong> (cible 15-20 mg/L selon indication), créatinine.</li>
+        <li>Teicoplanine (Targocid) : alternative, SC ou IV, demi-vie longue, dose de charge nécessaire.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Fluoroquinolones</h3>
+      <ul>
+        <li>Ciprofloxacine, lévofloxacine, ofloxacine, moxifloxacine.</li>
+        <li>Bonne biodisponibilité PO = IV.</li>
+        <li>ES : tendinopathies (Achille), QT long, photosensibilité, neurotoxicité.</li>
+        <li>CI / précautions : enfant, grossesse, ATCD tendinopathie, QT long.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Macrolides</h3>
+      <ul>
+        <li>Azithromycine, clarithromycine, érythromycine.</li>
+        <li>Pneumopathie atypique, coqueluche.</li>
+        <li>ES : <strong>QT long</strong>, troubles digestifs, interactions médicamenteuses (cytochrome P450).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Métronidazole (Flagyl)</h3>
+      <ul>
+        <li>Anaérobies, Clostridioides difficile, amibiase.</li>
+        <li>Effet "<strong>antabuse</strong>" avec l'alcool : flush, NV, malaise. Information patient.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Linézolide / Daptomycine</h3>
+      <ul>
+        <li>Réserve hospitalière (SARM résistant, ERG).</li>
+        <li>Linézolide : surveillance NFS (thrombopénie), neuropathie périphérique, IMAO-like.</li>
+        <li>Daptomycine : CPK (rhabdomyolyse), pas en pneumopathie (inactivé par surfactant).</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Règles d'or de l'antibiothérapie</h3>
+      <ul>
+        <li><strong>Prélèvements bactério AVANT</strong> (hémocs ×2, ECBU, expecto, LCR…). Ne jamais retarder l'ATB en cas de sepsis grave.</li>
+        <li>Réévaluation à <strong>48-72h</strong> : adaptation à l'antibiogramme, désescalade, durée.</li>
+        <li>Antibioprophylaxie chir : dans les <strong>60 min précédant l'incision</strong>, dose unique répétée si chir longue / saignement important.</li>
+        <li>Respect des horaires (intervalles fixes, surveillance des taux), ne pas mélanger des incompatibilités dans la même tubulure.</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"divers",
+  num:"17",
+  title:"À savoir absolument — divers",
+  eyebrow:"Chapitre 17 · pièges, mnémos, repères",
+  lede:"Une compilation de notions pratiques qui reviennent constamment en service.",
+  html:`
+  <div class="grid cols-2">
+
+    <div class="card">
+      <h3>Identitovigilance</h3>
+      <ul>
+        <li><strong>2 identifiants stricts</strong> minimum : nom de naissance + prénom + date de naissance (parfois sexe).</li>
+        <li>Vérification AVANT tout acte : prescription, transfusion, prélèvement, médicament.</li>
+        <li>Bracelet d'identification systématique.</li>
+        <li>Questionnement ouvert : "<em>quel est votre nom ?</em>" (pas "<em>vous êtes bien M. X ?</em>").</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Règle des 5 B / 7 B (médicament)</h3>
+      <ul>
+        <li><strong>B</strong>on patient</li>
+        <li><strong>B</strong>on médicament</li>
+        <li><strong>B</strong>onne dose</li>
+        <li><strong>B</strong>onne voie</li>
+        <li><strong>B</strong>on moment</li>
+        <li>+ <strong>B</strong>onne documentation (traçabilité)</li>
+        <li>+ <strong>B</strong>onne raison (vérifier l'indication)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Hiérarchie des dispositifs d'oxygène</h3>
+      <p>Pour s'en souvenir vite : "<em>plus la détresse est grande, plus le débit et la FiO2 montent</em>".</p>
+      <ol>
+        <li>Lunettes (confort, ≤ 6 L/min)</li>
+        <li>Masque simple</li>
+        <li>MHC ballon (urgence)</li>
+        <li>Optiflow (haut débit nasal)</li>
+        <li>VNI (CPAP / BiPAP)</li>
+        <li>Intubation</li>
+      </ol>
+    </div>
+
+    <div class="card">
+      <h3>Triangle de Sécurité Transfusionnelle</h3>
+      <ol>
+        <li>Le bon produit</li>
+        <li>Au bon patient</li>
+        <li>Au bon moment</li>
+      </ol>
+      <p>… vérifié par le <strong>contrôle ultime au lit</strong> systématique pour <strong>chaque poche</strong>.</p>
+    </div>
+
+    <div class="card">
+      <h3>Erreurs "à risque vital" à connaître</h3>
+      <ul>
+        <li><strong>KCl IVD</strong> = arrêt cardiaque.</li>
+        <li><strong>Ringer Lactate + CGR</strong> = coagulation tubulure (calcium chélate le citrate).</li>
+        <li><strong>Catécho en VVP</strong> = nécrose à l'extravasation.</li>
+        <li><strong>Ceftriaxone + RL chez nouveau-né</strong> = précipitation létale.</li>
+        <li><strong>Bolus d'insuline en SC</strong> à mauvaise dose = hypoglycémie sévère.</li>
+        <li><strong>Mauvaise identité</strong> en transfusion = incompatibilité ABO.</li>
+        <li><strong>Drain thoracique remonté au-dessus du patient</strong> = reflux dans la cavité.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Transmissions ciblées — DAR / SBAR</h3>
+      <p><strong>DAR</strong> (modèle FR) : Données — Actions — Résultats. Ex. cible "Douleur" → D : EN 6/10 — A : palier 2 administré — R : EN 2/10 à 1h.</p>
+      <p><strong>SBAR</strong> (modèle anglo-saxon, appels médecins) :</p>
+      <ul>
+        <li><strong>S</strong>ituation : qui ? où ? pourquoi j'appelle ?</li>
+        <li><strong>B</strong>ackground : ATCD, contexte, traitement.</li>
+        <li><strong>A</strong>ssessment : ce que je vois, constantes, mon analyse.</li>
+        <li><strong>R</strong>ecommendation : ce que je propose / demande.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Quelques repères chiffrés à connaître par cœur</h3>
+      <ul>
+        <li>Diurèse minimale : <strong>0,5 mL/kg/h</strong>.</li>
+        <li>PAM cible : ≥ <strong>65 mmHg</strong>.</li>
+        <li>Glasgow → intubation : ≤ <strong>8</strong>.</li>
+        <li>Hb → CGR : &lt; <strong>7 g/dL</strong> (8 si cardiopathie).</li>
+        <li>FiO2 air ambiant : <strong>21%</strong>.</li>
+        <li>SpO₂ cible : ≥ 95% (88-92% BPCO).</li>
+        <li>MCE : <strong>100-120/min</strong>, <strong>5-6 cm</strong>.</li>
+        <li>Adrénaline ACR : <strong>1 mg / 3-5 min</strong>.</li>
+        <li>Amiodarone FV/TV : <strong>300 mg</strong> après 3<sup>e</sup> choc.</li>
+        <li>Ratio 30:2 (RCP non intubé), continu si intubé + 10 ventilations/min.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Position du patient — réflexes</h3>
+      <ul>
+        <li><strong>OAP / dyspnée</strong> : assis jambes pendantes.</li>
+        <li><strong>Hypotension / malaise vagal</strong> : décubitus dorsal jambes surélevées.</li>
+        <li><strong>Trouble de conscience sans VAS sécurisées</strong> : <strong>PLS</strong>.</li>
+        <li><strong>HTIC suspecte (AVC, TC)</strong> : tête à 30°, axe rectiligne.</li>
+        <li><strong>Femme enceinte au 3<sup>e</sup> trimestre</strong> : <strong>DLG</strong> (décubitus latéral gauche) ou inclinaison du bassin pour éviter la compression de la VCI.</li>
+        <li><strong>Patient intubé/ventilé</strong> : semi-assis 30-45° (prévention PAVM).</li>
+        <li><strong>SDRA</strong> : <strong>décubitus ventral</strong> (DV) 12-16h/24h.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Jeûne pré-opératoire (ESA/SFAR)</h3>
+      <ul>
+        <li>Liquides clairs (eau, café/thé sans lait, jus sans pulpe) : <strong>2h</strong>.</li>
+        <li>Lait maternel (nourrisson) : <strong>4h</strong>.</li>
+        <li>Lait infantile, repas léger : <strong>6h</strong>.</li>
+        <li>Repas gras / viande : <strong>8h</strong>.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>NEWS — déclencher l'appel</h3>
+      <p>Si l'un de ces critères est isolé, alerter : <strong>FR &lt; 8 ou &gt; 25</strong>, <strong>SpO₂ &lt; 92%</strong> en air ambiant, <strong>PAS &lt; 90 ou &gt; 220</strong>, <strong>FC &lt; 40 ou &gt; 130</strong>, <strong>désorientation/somnolence brutale</strong>, <strong>T° &lt; 35 ou &gt; 39</strong>, <strong>diurèse &lt; 0,5 mL/kg/h</strong> sur 2h.</p>
+    </div>
+
+    <div class="card">
+      <h3>Intubation en Séquence Rapide (ISR)</h3>
+      <p>Procédure d'urgence pour intuber un patient à <strong>estomac plein</strong> (risque inhalation).</p>
+      <ol>
+        <li><strong>Préparation</strong> : matériel d'aspiration prêt, BAVU + O₂, laryngoscope, sondes (taille 7-7,5 femme, 7,5-8 homme), KT, médicaments.</li>
+        <li><strong>Pré-oxygénation</strong> au MHC ou Optiflow 3 min (idéalement 100% O₂).</li>
+        <li><strong>Manœuvre de Sellick</strong> (pression cricoïdienne — controversée mais souvent encore appliquée).</li>
+        <li><strong>Hypnotique</strong> : étomidate 0,3 mg/kg ou kétamine 1-2 mg/kg (stabilité HD).</li>
+        <li><strong>Curare</strong> : succinylcholine 1 mg/kg ou rocuronium 1 mg/kg.</li>
+        <li>Intubation, vérification : capno, auscultation symétrique, buée, expansion thoracique, RX.</li>
+        <li>Fixation, gonflage ballonnet 20-30 cmH₂O.</li>
+      </ol>
+      <p>Rôle IDE : aspiration, monitorage continu, médicaments à la seringue prête, ventilation au BAVU, manœuvre cricoïdienne au besoin.</p>
+    </div>
+
+    <div class="card">
+      <h3>Équivalences opioïdes (équianalgésie)</h3>
+      <p>Approximations pour la conversion. Toujours <strong>réduire de 25-50%</strong> lors d'une rotation pour la tolérance croisée incomplète.</p>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Opioïde</th><th>Équivalent à 10 mg morphine PO</th></tr></thead>
+          <tbody>
+            <tr><td>Morphine PO</td><td>10 mg</td></tr>
+            <tr><td>Morphine SC</td><td>5 mg (rapport 1/2)</td></tr>
+            <tr><td>Morphine IV</td><td>3 mg env. (rapport 1/3)</td></tr>
+            <tr><td>Oxycodone PO</td><td>5 mg</td></tr>
+            <tr><td>Tramadol PO</td><td>100 mg env.</td></tr>
+            <tr><td>Codéine PO</td><td>60 mg env.</td></tr>
+            <tr><td>Fentanyl patch</td><td>25 µg/h ≈ 60 mg morphine PO/j</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Glycémies cibles en hospitalisation</h3>
+      <ul>
+        <li><strong>Patient stable</strong> : 1,4-1,8 g/L (7,8-10 mmol/L).</li>
+        <li><strong>Réa</strong> : 1,4-1,8 g/L — éviter les hypoglycémies (plus délétères que l'hyperglycémie modérée).</li>
+        <li><strong>Acidocétose</strong> : insuline IVSE, baisse progressive (≤ 0,5 g/L/h), correction kaliémie, hydratation.</li>
+        <li><strong>Coma hyperosmolaire</strong> : réhydratation prudente, insuline.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Mort encéphalique</h3>
+      <p>Conditions strictes (loi française) : étiologie connue + absence de cause confondante (sédation, hypothermie, troubles métaboliques).</p>
+      <h4>Critères cliniques</h4>
+      <ul>
+        <li>Coma profond, aréactif (GCS 3).</li>
+        <li>Absence de tous les réflexes du tronc cérébral (photomoteur, cornéen, oculo-cardiaque, vestibulaire, toux).</li>
+        <li>Absence de ventilation spontanée (test d'apnée standardisé).</li>
+      </ul>
+      <h4>Examens complémentaires (un des 2)</h4>
+      <ul>
+        <li><strong>2 EEG plats</strong> à 4h d'intervalle, ≥ 30 min, à amplification maximale.</li>
+        <li><strong>Angio-TDM cérébrale</strong> ou artériographie : absence de circulation cérébrale.</li>
+      </ul>
+      <p>Si compatible avec un prélèvement d'organes : démarche avec la <strong>coordination hospitalière</strong> + abord des proches. Maintien strict de l'hémodynamique et de l'oxygénation jusqu'au prélèvement.</p>
+    </div>
+
+    <div class="card">
+      <h3>Soins de bouche en réa</h3>
+      <ul>
+        <li><strong>Toutes les 4 heures</strong> chez le patient intubé/ventilé.</li>
+        <li>Chlorhexidine buccale 0,12-0,2% : ↓ pneumopathies acquises sous ventilation (PAVM).</li>
+        <li>Aspiration sus-glottique avant tout mouvement / repositionnement du ballonnet.</li>
+        <li>Position semi-assise 30-45°.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Prévention de la PAVM (bundle)</h3>
+      <ul>
+        <li>Position semi-assise 30-45°.</li>
+        <li>Soins de bouche chlorhexidine /4h.</li>
+        <li>Fenêtres de sédation quotidiennes + tests de sevrage de la ventilation.</li>
+        <li>Aspirations stériles à la demande, ballonnet 20-30 cmH₂O.</li>
+        <li>Prévention thromboembolique et ulcère de stress.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>Calcul rapide du débit IVSE — astuce</h3>
+      <p>Pour une noradrénaline préparée à <strong>0,1 mg/mL = 100 µg/mL</strong> (8 mg dans 80 mL) chez un adulte de 70 kg :</p>
+      <p class="mono">Débit (mL/h) = Dose (µg/kg/min) × poids × 0,6</p>
+      <p>Ex. 0,2 µg/kg/min × 70 × 0,6 = <strong>8,4 mL/h</strong>. À <strong>vérifier toujours</strong> avec la concentration exacte de votre service.</p>
+    </div>
+
+    <div class="card">
+      <h3>Patients à risque accru — alertes mentales</h3>
+      <ul>
+        <li><strong>Sujet âgé</strong> : déshydratation rapide, polymédication, confusion sous benzos/morphine, capital veineux fragile.</li>
+        <li><strong>Insuffisant rénal</strong> : adapter posologies (aminosides, héparine, opioïdes), pas d'AINS, attention iode et certains AOD.</li>
+        <li><strong>Insuffisant hépatique</strong> : éviter paracétamol forte dose, attention BZD à demi-vie longue.</li>
+        <li><strong>Femme enceinte</strong> : DLG, médicaments à vérifier (CRAT.fr), vaccins inactivés OK.</li>
+        <li><strong>Diabétique</strong> : HGT fréquents, surveillance des pieds, NV peuvent masquer acidocétose.</li>
+        <li><strong>BPCO</strong> : SpO₂ cible 88-92%, attention sédatifs.</li>
+      </ul>
+    </div>
+
+  </div>
+  `
+},
+
+/* ====================================================== */
+{
+  id:"quiz",
+  num:"18",
+  title:"Auto-évaluation — 50 flashcards",
+  eyebrow:"Chapitre 18 · révision active",
+  lede:"Clique sur une question pour révéler la réponse. La méthode de la <em>réminiscence active</em> ancre l'info bien mieux que la relecture.",
+  html:`
+  <div class="card">
+    <div class="quiz" id="quizList">
+      <!-- injecté par JS -->
+    </div>
+  </div>
+  `
+}
+
+];
+
+/* ============ FLASHCARDS ============ */
+const QUIZ = [
+  ["Pourquoi les catécholamines doivent-elles passer en voie centrale ?","Parce que ce sont des vasoconstricteurs puissants : en cas d'extravasation sur une VVP, ils provoquent une ischémie et une nécrose tissulaire. La VVC dilue immédiatement le produit dans le flux de la VCS."],
+  ["Quel calibre minimum pour transfuser un CGR ?","20 G (rose) au minimum, idéalement 18 G (vert). En transfusion massive : 2 voies de 16-18 G."],
+  ["Quelle est la couleur d'un cathéter 18 G ?","Vert (gauge 18, débit ≈ 96 mL/min)."],
+  ["Quelle est la couleur d'un 20 G ?","Rose (gauge 20, ≈ 60 mL/min)."],
+  ["Quelle est la durée maximale de transfusion d'un CGR après sortie du frigo ?","4 heures (idéalement 1h30-3h)."],
+  ["Quel soluté ne JAMAIS associer à un CGR sur la même ligne ?","Ringer Lactate (le calcium chélate le citrate anticoagulant du CGR et coagule le sang dans la tubulure)."],
+  ["Donneur universel CGR ? Receveur universel ?","Donneur universel CGR = O négatif. Receveur universel CGR = AB positif."],
+  ["Donneur universel de PFC ?","AB (pas d'anticorps anti-A ni anti-B dans le plasma)."],
+  ["Peut-on passer CGR et PFC en même temps en urgence ?","Oui. En transfusion massive, le protocole 1:1:1 (CGR:PFC:Plaquettes) sur des voies distinctes ou un accélérateur-réchauffeur est recommandé."],
+  ["Que faire devant une réaction transfusionnelle ?","Arrêt immédiat, maintien de la voie avec NaCl 0,9%, appel médecin, conservation poche + tubulure, fiche EIR et retour à l'EFS."],
+  ["Quelle voie d'administration pour l'adrénaline en anaphylaxie ?","IM dans la face antéro-latérale de la cuisse, 0,5 mg adulte. Pas d'IVD en première intention."],
+  ["Quelle est la posologie de l'adrénaline dans l'ACR ?","1 mg IV ou IO, à répéter toutes les 3-5 min."],
+  ["Quelle drogue après le 3e choc en FV/TV ?","Amiodarone 300 mg IV/IO (puis 150 mg après le 5e choc)."],
+  ["Quelle est la cadence du MCE ?","100-120 compressions/min, sternum, profondeur 5-6 cm."],
+  ["Ratio compressions/insufflations chez un patient non intubé ?","30 : 2."],
+  ["Glasgow seuil d'intubation ?","≤ 8."],
+  ["Calcul de la PAM ?","PAM ≈ (PAS + 2×PAD)/3. Objectif universel en réa ≥ 65 mmHg."],
+  ["Quelle FiO2 délivre une lunette à 4 L/min approximativement ?","Environ 36% (formule rapide : 21% + 4 × débit)."],
+  ["Différence CPAP / BiPAP ?","CPAP = une seule pression positive continue (indication : OAP). BiPAP = deux pressions (AI inspiratoire + PEP expiratoire) — indication : BPCO décompensée hypercapnique."],
+  ["Quelle SpO2 cible chez un BPCO ?","88-92% (éviter l'hyperoxie qui peut entraîner une narcose au CO₂)."],
+  ["Différence PICC vs Midline ?","PICC = cathéter central (extrémité en VCS), Midline = cathéter périphérique long (extrémité en axillaire). Le Midline est soumis aux mêmes restrictions qu'une VVP."],
+  ["Quel test avant pose KTA radial ?","Test d'Allen pour vérifier la perméabilité de l'artère ulnaire."],
+  ["Quelle pression dans la poche pressurisée d'un KTA ?","300 mmHg."],
+  ["Quelle est la diurèse horaire normale ?","≥ 0,5 mL/kg/h. Oligurie en dessous de ce seuil pendant plus de 2h."],
+  ["Quelle est la triade létale en hémorragie ?","Acidose + hypothermie + coagulopathie."],
+  ["Quels solutés peuvent ne PAS passer en VVP ?","Solutés hyperosmolaires (&gt; 800-900 mOsm/L) : G30%, KCl très concentré, NP industrielle, bicar 4,2/8,4%, catécholamines, chimios vésicantes."],
+  ["Comment corriger une hyperkaliémie menaçante ?","Gluconate de calcium 1 g IV (protection cardiaque), insuline-glucose, salbutamol aérosol, bicarbonate, diurétiques, dialyse."],
+  ["Quel antidote des héparines ?","Sulfate de protamine."],
+  ["Quel antidote de la morphine ?","Naloxone (Narcan) 0,04-0,4 mg IV titrée."],
+  ["Quel antidote des benzodiazépines ?","Flumazénil (Anexate)."],
+  ["Quel antidote des AVK ?","Vitamine K (lente) + PPSB (rapide en urgence)."],
+  ["Pourquoi vérifier les plaquettes 2×/sem sous HBPM/HNF ?","Pour dépister une thrombopénie induite à l'héparine (TIH), complication grave thrombotique paradoxale."],
+  ["Quelles précautions pour la gale et le C. difficile ?","Précautions Contact + lavage des mains à l'eau et au savon (la SHA est inefficace sur les spores de C. difficile et sur la gale)."],
+  ["Type de masque pour la tuberculose pulmonaire ?","FFP2 pour le soignant, précautions Air. Chambre seule, porte fermée."],
+  ["Indication de la CPAP ?","OAP cardiogénique en première intention."],
+  ["Indication de la BiPAP ?","BPCO en décompensation hypercapnique (pH &lt; 7,35)."],
+  ["Critères Apfel ?","Femme, non-fumeur, ATCD NVPO/mal des transports, morphiniques post-op (1 pt chacun)."],
+  ["Score d'Aldrete : sortie de SSPI à partir de combien ?","≥ 9/10."],
+  ["Aiguille à utiliser sur un PAC ?","Aiguille de Huber (jamais aiguille standard à biseau coupant)."],
+  ["Quelle est la dose et la voie de la succinylcholine ? ","1 mg/kg IV pour l'intubation en séquence rapide (curare dépolarisant)."],
+  ["Quels rythmes sont choquables en ACR ?","FV et TV sans pouls."],
+  ["Quels rythmes ne sont pas choquables ?","Asystolie et AESP."],
+  ["Quelle est la cible INR sous AVK pour une FA ?","2-3."],
+  ["Quelle est la cible PAM en choc septique ?","≥ 65 mmHg (souvent 65-75)."],
+  ["Quelle dose de remplissage en choc septique ?","30 mL/kg de cristalloïde (Ringer Lactate de préférence)."],
+  ["Quelle est la fenêtre de thrombolyse de l'AVC ?","4h30 (thrombectomie possible jusqu'à 24h pour certaines occlusions proximales)."],
+  ["Position dans l'OAP ?","Assis jambes pendantes."],
+  ["Position en HTIC suspecte ?","Tête à 30°, axe rachidien rectiligne."],
+  ["Position en compression de la VCI au 3e trimestre de grossesse ?","Décubitus latéral gauche."],
+  ["Jeûne pré-op : liquides clairs ?","2 heures."],
+  ["Définition de l'état de choc ?","Défaillance circulatoire aiguë avec hypoperfusion tissulaire et altération du métabolisme cellulaire de l'O₂. La TA peut être normale au début (compensation)."],
+  ["Quels sont les 4 grands types de choc ?","Distributif (septique, anaphylactique, spinal), cardiogénique, hypovolémique, obstructif."],
+  ["Quelle est la formule du débit cardiaque ?","DC = VES × FC. Le VES dépend de précharge, contractilité et postcharge."],
+  ["Quels sont les signes cutanés d'un état de choc ?","Marbrures, pâleur, cyanose des extrémités, froideur, TRC > 3 secondes, gradient de température centrale-périphérique."],
+  ["Quel est le signe respiratoire précoce du choc ?","Polypnée (compense l'acidose métabolique en éliminant du CO₂ et l'hypoxie)."],
+  ["Pourquoi la TA peut être normale en début de choc ?","Mécanismes de compensation : tachycardie, vasoconstriction périphérique, polypnée. La PA pincée (PAS-PAD réduite) précède l'hypotension franche."],
+  ["Quel choc présente une bradycardie paradoxale ?","Le choc spinal (sympatholyse par lésion médullaire). À l'inverse des autres chocs où on attend une tachycardie."],
+  ["Quel score évalue la sévérité des marbrures ?","Mottling score (0 à 5) évalué au genou. Score ≥ 4 à H6 en réa = mortalité > 80%."],
+  ["Triade de Beck ?","Triade de la tamponnade péricardique : turgescence jugulaire + bruits du cœur assourdis + hypotension."],
+  ["Comment lever un pneumothorax compressif ?","Exsufflation à l'aiguille en urgence : 2e EIC sur la ligne médio-claviculaire, suivie d'un drainage thoracique."],
+  ["Que veut dire SBAR ?","Situation – Background – Assessment – Recommendation : structure de transmission orale pour appeler un médecin."],
+  ["Quelle est l'osmolarité limite pour un soluté sur VVP ?","Environ 800-900 mOsm/L. Au-delà, veine centrale obligatoire."],
+  ["Combien de mL équivaut 1 goutte sur un perfuseur adulte ?","1 mL = 20 gouttes (perfuseur standard adulte). Le microperfuseur pédiatrique fait 60 gouttes/mL."],
+  ["Astuce pour passer rapidement de mL/h à gouttes/min ?","Diviser approximativement les mL/h par 3 pour obtenir les gouttes/min (avec perfuseur 20 gtt/mL)."],
+  ["Quelle est la cible de PAM en choc spinal ?","PAM ≥ 85-90 mmHg pour la perfusion médullaire (plus élevée que la cible standard de 65)."],
+  ["Quelle SvO2 centrale indique un débit insuffisant ?","SvO₂ < 65% : extraction excessive de l'O₂ = bas débit cardiaque ou anémie."],
+  ["Quels critères de classification ATLS pour une hémorragie classe III ?","Perte 30-40% volémie : FC 120-140, PAS abaissée, FR 30-40, patient confus."],
+  ["Quel antidote spécifique au rocuronium / vécuronium ?","Sugammadex (Bridion)."],
+  ["Quel pourcentage d'air ambiant en oxygène ?","21% (78% azote, 1% gaz divers)."]
+];
+
+/* ===================== RENDER ===================== */
+const mainEl = document.getElementById('main');
+const navEl = document.getElementById('nav');
+const navMobile = document.getElementById('navMobile');
+const searchInput = document.getElementById('searchInput');
+
+function renderNav(){
+  navEl.innerHTML = '';
+  navMobile.innerHTML = '';
+  SECTIONS.forEach((s,i)=>{
+    const b = document.createElement('button');
+    b.innerHTML = `<span class="num">${s.num}</span><span>${s.title}</span>`;
+    b.dataset.id = s.id;
+    b.addEventListener('click',()=>show(s.id));
+    navEl.appendChild(b);
+
+    const o = document.createElement('option');
+    o.value = s.id; o.textContent = `${s.num} · ${s.title}`;
+    navMobile.appendChild(o);
+  });
+  navMobile.addEventListener('change',e=>show(e.target.value));
+}
+
+function renderSections(){
+  mainEl.innerHTML = '';
+  SECTIONS.forEach(s=>{
+    const sec = document.createElement('section');
+    sec.id = `sec-${s.id}`;
+    sec.innerHTML = `
+      <div class="hero">
+        <div class="eyebrow">${s.eyebrow}</div>
+        <h2 class="title">${s.title.replace(/—/,'<em>—</em>')}</h2>
+        <p class="lede">${s.lede}</p>
+      </div>
+      ${s.html}
+    `;
+    mainEl.appendChild(sec);
+  });
+  renderQuiz();
+}
+
+function renderQuiz(){
+  const list = document.getElementById('quizList');
+  if(!list) return;
+  list.innerHTML = '';
+  QUIZ.forEach(([q,a])=>{
+    const d = document.createElement('div');
+    d.className = 'qa';
+    d.innerHTML = `<div class="q">${q}</div><div class="a">${a}</div>`;
+    d.addEventListener('click',()=>d.classList.toggle('open'));
+    list.appendChild(d);
+  });
+}
+
+function show(id){
+  document.querySelectorAll('section').forEach(el=>el.classList.remove('show'));
+  document.getElementById('sec-'+id)?.classList.add('show');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.id===id));
+  navMobile.value = id;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ============ SEARCH ============ */
+function escapeHTML(str){return str.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function escapeReg(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}
+
+function runSearch(q){
+  q = q.trim();
+  if(!q){
+    // restore
+    document.querySelectorAll('section').forEach(el=>el.innerHTML = el.dataset.original || el.innerHTML);
+    document.querySelectorAll('section').forEach(el=>el.classList.remove('show'));
+    document.getElementById('sec-'+SECTIONS[0].id).classList.add('show');
+    document.querySelectorAll('.nav button').forEach((b,i)=>b.classList.toggle('active',i===0));
+    return;
+  }
+  const reg = new RegExp(escapeReg(q),'gi');
+  let totalHits = 0;
+  SECTIONS.forEach(s=>{
+    const sec = document.getElementById('sec-'+s.id);
+    if(!sec.dataset.original) sec.dataset.original = sec.innerHTML;
+    const has = sec.dataset.original.replace(/<[^>]+>/g,' ').match(reg);
+    if(has){
+      totalHits += has.length;
+      sec.innerHTML = sec.dataset.original.replace(/>([^<]+)</g,(m,txt)=>'>'+txt.replace(reg,x=>`<mark>${x}</mark>`)+'<');
+      sec.classList.add('show');
+    }else{
+      sec.classList.remove('show');
+    }
+  });
+  if(totalHits===0){
+    SECTIONS.forEach(s=>{
+      const sec = document.getElementById('sec-'+s.id);
+      if(sec.dataset.original) sec.innerHTML = sec.dataset.original;
+    });
+    document.getElementById('sec-'+SECTIONS[0].id).innerHTML = `<div class="empty"><h3 style="font-family:Fraunces,serif">Aucun résultat pour <em>« ${escapeHTML(q)} »</em></h3><p>Essaye un autre terme (ex. <em>cathécho</em>, <em>VVC</em>, <em>FiO2</em>, <em>Glasgow</em>, <em>plasma</em>).</p></div>`;
+    document.getElementById('sec-'+SECTIONS[0].id).classList.add('show');
+  }
+}
+
+searchInput.addEventListener('input',e=>runSearch(e.target.value));
+
+/* ============ INIT ============ */
+renderNav();
+renderSections();
+show(SECTIONS[0].id);
+</script>
+</body>
+</html>
